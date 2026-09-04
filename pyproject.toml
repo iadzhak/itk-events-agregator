@@ -7,7 +7,10 @@ authors = [
     { name = "Iadzhak Sergei", email = "yadzhak@yandex.ru" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "fastapi>=0.141.1",
+    "uvicorn[standard]>=0.52.4",
+]
 
 [project.scripts]
 
@@ -15,3 +18,7 @@ dependencies = []
 [build-system]
 requires = ["uv_build>=0.12.9,<0.13.0"]
 build-backend = "uv_build"
+
+
+[tools.fastapi]
+entrypoint = "src.app.main:app"
