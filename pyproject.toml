@@ -9,6 +9,7 @@ authors = [
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.141.1",
+    "httpx>=0.28.1",
     "uvicorn[standard]>=0.52.4",
 ]
 
@@ -28,3 +29,10 @@ dev = [
 
 [tool.ruff]
 line-length = 79
+
+
+[tool.pytest.ini_options]
+addopts = ["-vv"]
+markers = [
+    "unit: Unit tests"
+]
