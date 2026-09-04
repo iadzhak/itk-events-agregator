@@ -1,8 +1,7 @@
 from typing import Annotated
 
 from pydantic import field_validator
-
-from pydantic_settings import BaseSettings, SettingsConfigDict, NoDecode
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
