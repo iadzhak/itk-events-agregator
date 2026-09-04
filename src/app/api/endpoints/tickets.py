@@ -4,10 +4,10 @@ router = APIRouter()
 
 
 @router.post('/')
-async def signup_for_event():
+async def register_for_event():
     return None
 
 
 @router.delete('/{ticket_id}')
-async def cancel_signup():
+async def cancel_registration():
     return None
