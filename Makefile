@@ -1,4 +1,4 @@
-.PHONY: dev lint lint-fix
+.PHONY: dev lint lint-fix test
 
 dev:
 	uv run uvicorn app.main:app --reload
@@ -8,3 +8,6 @@ lint:
 
 lint-fix:
 	ruff check --fix
+
+test:
+	pytest -x
