@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from app.clients.events_provider import EventsProviderClient
-from app.schemas.event import Event
+from app.schemas.event import EventDB
 from app.schemas.external import EventsResponse
 from app.utils.events_paginator import EventsPaginator
 
@@ -40,7 +40,7 @@ class TestEventsPaginator:
 
         iterator = EventsPaginator(client, changed_at=self.CHANGE_AT)
         result = [e async for e in iterator]
-        assert all(isinstance(e, Event) for e in result)
+        assert all(isinstance(e, EventDB) for e in result)
         assert len(result) == len(mock_events)
         assert result == mock_events
 

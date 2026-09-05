@@ -6,8 +6,8 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
 from app.main import app
-from app.schemas.event import Event
-from app.schemas.place import Place
+from app.schemas.event import EventDB
+from app.schemas.place import PlaceDB
 
 
 def generate_date(days_delta: int = 0):
@@ -26,7 +26,7 @@ async def test_client():
 @pytest.fixture
 def place_factory():
     def func(name: str = 'place'):
-        return Place(
+        return PlaceDB(
             id=uuid4(),
             name=name,
             city='city',
@@ -41,8 +41,8 @@ def place_factory():
 
 @pytest.fixture
 def event_factory(place_factory):
-    def func(name: str = 'event', place: Place | None = None):
-        return Event(
+    def func(name: str = 'event', place: PlaceDB | None = None):
+        return EventDB(
             id=uuid4(),
             name=name,
             place=place or place_factory(),
