@@ -17,7 +17,11 @@ class EventsProviderClient(BaseProviderClient):
         headers = {
             'x-api-key': api_key
         }
-        self._client = AsyncClient(base_url=base_url, headers=headers)
+        self._client = AsyncClient(
+            base_url=base_url,
+            headers=headers,
+            follow_redirects=True
+        )
 
     async def events(
             self,
