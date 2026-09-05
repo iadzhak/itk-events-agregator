@@ -10,11 +10,26 @@ class Settings(BaseSettings):
 
     check_interval: int = 60
 
-    origins: Annotated[list[str], NoDecode] = '*'
+    origins: Annotated[list[str], NoDecode] = ['*']
+
+    db_host: str = 'localhost'
+    postgres_user: str = 'postgres'
+    postgres_password: str = 'postgres'
+    postgres_db: str = 'postgres'
+    postgres_port: int = 5432
+
+    @property
+    def db_url(self) -> str:
+        return (
+            f'postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}'
+            f'@{self.db_host}:{self.postgres_port}/{self.postgres_db}'
+        )
 
     @field_validator('origins', mode='before')
     @classmethod
     def decode_origins(cls, v: str) -> list[str]:
+        if isinstance(v, list):
+            return v
         return v.split(',')
 
     model_config = SettingsConfigDict(env_file='.env')
