@@ -7,6 +7,7 @@ from app.core.db import Base
 from app.types.sync_status import SyncStatus
 
 DEFAULT_LAST_CHANGED_AT = dt.datetime(2000, 1, 1, tzinfo=dt.timezone.utc)
+SYNC_STATUS_MAX_LENGTH = 10
 
 
 class SyncMeta(Base):
@@ -19,4 +20,7 @@ class SyncMeta(Base):
         DateTime,
         default=DEFAULT_LAST_CHANGED_AT
     )
-    sync_status: Mapped[SyncStatus] = mapped_column(String(10))
+    sync_status: Mapped[SyncStatus] = mapped_column(
+        String(SYNC_STATUS_MAX_LENGTH),
+        default=SyncStatus.NEVER
+    )
