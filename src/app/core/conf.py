@@ -8,9 +8,11 @@ class Settings(BaseSettings):
     app_title: str = 'Events Aggregator'
     app_description: str = 'Special aggregator for Events Provider API'
 
-    check_interval: int = 60
-
     origins: Annotated[list[str], NoDecode] = ['*']
+
+    update_interval_h: int = 24
+    provider_base_url: str = 'http://events-provider.dev-2.python-labs.ru'
+    provider_api_key: str = ''
 
     db_host: str = 'localhost'
     postgres_user: str = 'postgres'
