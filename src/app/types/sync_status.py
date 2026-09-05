@@ -5,3 +5,4 @@ class SyncStatus(StrEnum):
     NEVER = 'never'
     RUNNING = 'running'
     SUCCESS = 'success'
+    ERROR = 'error'
