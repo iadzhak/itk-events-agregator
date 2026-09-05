@@ -43,6 +43,9 @@ class SyncService:
 
     async def run(self, session: AsyncSession):
         meta = await self.get_meta(session)
+        if meta.sync_status == SyncStatus.RUNNING:
+            logger.info('Синхронизация уже идет')
+            return
         now = dt.datetime.now(tz=dt.UTC)
         meta.sync_status = SyncStatus.RUNNING
         meta.last_sync_time = now
