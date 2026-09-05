@@ -1,12 +1,12 @@
 import datetime as dt
 
-from sqlalchemy import Integer, String, DateTime
+from sqlalchemy import DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base
 from app.types.sync_status import SyncStatus
 
-DEFAULT_LAST_CHANGED_AT = dt.datetime(2000, 1, 1, tzinfo=dt.timezone.utc)
+DEFAULT_LAST_CHANGED_AT = dt.datetime(2000, 1, 1, tzinfo=dt.UTC)
 SYNC_STATUS_MAX_LENGTH = 10
 
 
@@ -14,7 +14,7 @@ class SyncMeta(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     last_sync_time: Mapped[dt.datetime] = mapped_column(
         DateTime,
-        default=lambda: dt.datetime.now(tz=dt.timezone.utc)
+        default=lambda: dt.datetime.now(tz=dt.UTC)
     )
     last_changed_at: Mapped[dt.datetime] = mapped_column(
         DateTime,
