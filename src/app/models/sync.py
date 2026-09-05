@@ -13,11 +13,11 @@ SYNC_STATUS_MAX_LENGTH = 10
 class SyncMeta(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     last_sync_time: Mapped[dt.datetime] = mapped_column(
-        DateTime,
+        DateTime(timezone=True),
         default=lambda: dt.datetime.now(tz=dt.UTC)
     )
     last_changed_at: Mapped[dt.datetime] = mapped_column(
-        DateTime,
+        DateTime(timezone=True),
         default=DEFAULT_LAST_CHANGED_AT
     )
     sync_status: Mapped[SyncStatus] = mapped_column(

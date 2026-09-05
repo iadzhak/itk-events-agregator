@@ -26,8 +26,8 @@ class Base(DeclarativeBase):
 class CommonMixin:
     id: Mapped[UUID] = mapped_column(UUID_sa, primary_key=True)
     name: Mapped[str] = mapped_column(String)
-    changed_at: Mapped[dt.datetime] = mapped_column(DateTime)
-    created_at: Mapped[dt.datetime] = mapped_column(DateTime)
+    changed_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True))
 
 
 async def get_session():
