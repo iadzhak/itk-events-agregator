@@ -56,3 +56,6 @@ async def get_sync_service(
         events_repo=events_repo,
         place_repo=place_repo
     )
+
+
+SyncServiceDep = Annotated[SyncService, Depends(get_sync_service)]
