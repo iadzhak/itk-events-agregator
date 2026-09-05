@@ -1,6 +1,6 @@
 from enum import StrEnum
 
 
-class Status(StrEnum):
+class EventStatus(StrEnum):
     NEW = 'new'
     PUBLISHED = 'published'
