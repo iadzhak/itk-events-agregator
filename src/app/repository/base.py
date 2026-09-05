@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,12 +12,12 @@ class BaseRepository[T]:
     async def create(self, data: dict, session: AsyncSession) -> T:
         db_obj = self.model(**data)
         session.add(db_obj)
-        await session.flush()
+        await session.commit()
         return db_obj
 
     async def get_by_id(
             self,
-            _id: int,
+            _id: int | UUID,
             session: AsyncSession
     ) -> T | None:
         stmt = select(self.model).where(self.model.id == _id)
@@ -28,5 +30,5 @@ class BaseRepository[T]:
             if key in data:
                 setattr(db_obj, key, data[key])
         session.add(db_obj)
-        await session.flush()
+        await session.commit()
         return db_obj
