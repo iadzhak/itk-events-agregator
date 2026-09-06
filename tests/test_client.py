@@ -4,8 +4,10 @@ from unittest.mock import AsyncMock, MagicMock
 from uuid import UUID, uuid4
 
 import pytest
+from httpx import HTTPError
 
 from app.clients.events_provider import EventsProviderClient
+from app.core.exceptions import ExternalApiError
 from app.schemas.external import EventsResponse
 
 
@@ -33,7 +35,7 @@ class TestEventsProviderClient:
     def make_client(
             self,
             response,
-            method: Literal['get', 'post', 'delete']
+            method: Literal['get', 'post', 'request']
     ):
         client = EventsProviderClient(
             base_url=self.BASE_URL,
@@ -42,6 +44,18 @@ class TestEventsProviderClient:
         mock_response = MagicMock()
         mock_response.json.return_value = response
         setattr(client._client, method, AsyncMock(return_value=mock_response))
+        return client
+
+    def make_client_with_raises(self, method):
+        client = EventsProviderClient(
+            base_url=self.BASE_URL,
+            api_key=self.API_KEY
+        )
+        setattr(
+            client._client,
+            method,
+            AsyncMock(side_effect=HTTPError('err'))
+        )
         return client
 
     def make_event(self):
@@ -131,6 +145,11 @@ class TestEventsProviderClient:
         assert isinstance(response.results, list)
         assert len(response.results) == 0
 
+    async def test_events_http_error(self):
+        client = self.make_client_with_raises('get')
+        with pytest.raises(ExternalApiError):
+            await client.events(changed_at=self.CHANGE_AT)
+
     async def test_seats_correct_url(self):
         mock_uuid = uuid4()
         client = self.make_client(
@@ -161,6 +180,11 @@ class TestEventsProviderClient:
         assert isinstance(response, list)
         assert len(response) == 0
 
+    async def test_seats_http_error(self):
+        client = self.make_client_with_raises('get')
+        with pytest.raises(ExternalApiError):
+            await client.seats(event_id=uuid4())
+
     async def test_register_correct_url_and_body(self):
         mock_event_id = uuid4()
         mock_body = self.make_body()
@@ -190,18 +214,27 @@ class TestEventsProviderClient:
         assert isinstance(response, UUID)
         assert response == UUID(mock_ticket['ticket_id'])
 
+    async def test_register_http_error(self):
+        client = self.make_client_with_raises('get')
+        with pytest.raises(ExternalApiError):
+            await client.register(
+                event_id=uuid4(),
+                **self.make_body()
+            )
+
     async def test_cancel_correct_url_and_body(self):
         client = self.make_client(
             response=self.make_cancel(),
-            method='delete'
+            method='request'
         )
         mock_event_id = uuid4()
         mock_ticket = self.make_ticket()
         await client.cancel(
             event_id=mock_event_id,
-            ticket_id=mock_ticket['ticket_id']
+            ticket_id=UUID(mock_ticket['ticket_id'])
         )
-        client._client.delete.assert_awaited_once_with(
+        client._client.request.assert_awaited_once_with(
+            'DELETE',
             self.CANCEL_URL.format(event_id=mock_event_id),
             json=mock_ticket
         )
@@ -209,10 +242,18 @@ class TestEventsProviderClient:
     async def test_cancel_success(self):
         client = self.make_client(
             response=self.make_cancel(),
-            method='delete'
+            method='request'
         )
         response = await client.cancel(
             event_id=uuid4(),
             ticket_id=uuid4()
         )
         assert response is True
+
+    async def test_cancel_http_error(self):
+        client = self.make_client_with_raises('request')
+        with pytest.raises(ExternalApiError):
+            await client.cancel(
+                event_id=uuid4(),
+                ticket_id=uuid4()
+            )

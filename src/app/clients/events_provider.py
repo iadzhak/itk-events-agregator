@@ -1,9 +1,12 @@
 import datetime as dt
+from collections.abc import Coroutine
+from typing import Any
 from uuid import UUID
 
-from httpx import AsyncClient
+from httpx import AsyncClient, HTTPError, Response
 
 from app.clients.base import BaseProviderClient
+from app.core.exceptions import ExternalApiError
 from app.schemas.external import EventsResponse
 
 
@@ -23,6 +26,17 @@ class EventsProviderClient(BaseProviderClient):
             follow_redirects=True
         )
 
+    async def _handle_response(
+            self,
+            request: Coroutine[Any, Any, Response]
+    ) -> Response:
+        try:
+            response = await request
+            response.raise_for_status()
+            return response
+        except HTTPError as e:
+            raise ExternalApiError(e)
+
     async def events(
             self,
             changed_at: dt.datetime,
@@ -31,15 +45,15 @@ class EventsProviderClient(BaseProviderClient):
         params = {'changed_at': changed_at.strftime('%Y-%m-%d')}
         if cursor is not None:
             params['cursor'] = cursor
-        response = await self._client.get(self.EVENTS_URL, params=params)
-        response.raise_for_status()
+        request = self._client.get(self.EVENTS_URL, params=params)
+        response = await self._handle_response(request)
         data = response.json()
         return EventsResponse(**data)
 
     async def seats(self, event_id: UUID) -> list[str]:
         url = self.SEATS_URL.format(event_id=str(event_id))
-        response = await self._client.get(url)
-        response.raise_for_status()
+        request = self._client.get(url)
+        response = await self._handle_response(request)
         data = response.json()
         return data.get('seats', [])
 
@@ -58,8 +72,8 @@ class EventsProviderClient(BaseProviderClient):
             'seat': seat,
             'email': email
         }
-        response = await self._client.post(url, json=body)
-        response.raise_for_status()
+        request = self._client.post(url, json=body)
+        response = await self._handle_response(request)
         data = response.json()
         return UUID(data.get('ticket_id'))
 
@@ -67,10 +81,11 @@ class EventsProviderClient(BaseProviderClient):
         body = {
             'ticket_id': str(ticket_id)
         }
-        response = await self._client.delete(
+        request = self._client.request(
+            'DELETE',
             self.CANCEL_URL.format(event_id=str(event_id)),
             json=body
         )
-        response.raise_for_status()
+        response = await self._handle_response(request)
         data = response.json()
         return data.get('success', False)
