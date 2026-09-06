@@ -1,11 +1,25 @@
-from fastapi import APIRouter
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Request
+
+from app.dependencies import EventServiceDep, SessionDep
+from app.schemas import EventFilter, Pagination
 
 router = APIRouter()
 
 
 @router.get('/')
-async def get_all_events():
-    return None
+async def get_all_events(
+        *,
+        filters: Annotated[EventFilter, Depends()],
+        pagination: Annotated[Pagination, Depends()],
+        event_service: EventServiceDep,
+        session: SessionDep,
+        request: Request,
+):
+    result = await event_service.get_paginated(request, filters, pagination,
+                                               session)
+    return result
 
 
 @router.get('/{event_id}')
