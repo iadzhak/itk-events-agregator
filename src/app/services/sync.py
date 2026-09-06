@@ -1,8 +1,10 @@
 import datetime as dt
 
+from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.clients.base import BaseProviderClient
+from app.core.exceptions import ExternalApiError
 from app.core.logging import get_logger
 from app.models.event import Event
 from app.models.place import Place
@@ -58,7 +60,7 @@ class SyncService:
             if last_event:
                 meta.last_changed_at = last_event.changed_at
             session.add(meta)
-        except Exception:
+        except (ExternalApiError, ValidationError):
             meta.sync_status = SyncStatus.ERROR
             logger.exception(f'Ошибка фоновой синхронизации от {now!s}')
         finally:
