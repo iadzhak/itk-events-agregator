@@ -17,9 +17,12 @@ async def get_all_events(
         session: SessionDep,
         request: Request,
 ):
-    result = await event_service.get_paginated(request, filters, pagination,
-                                               session)
-    return result
+    return await event_service.get_paginated(
+        request=request,
+        filters=filters,
+        pagination=pagination,
+        session=session
+    )
 
 
 @router.get('/{event_id}')
