@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from app.clients.events_provider import EventsProviderClient
-from app.schemas import EventDB, EventsResponse
+from app.schemas import EventDB, EventsExternal
 from app.utils.events_paginator import EventsPaginator
 
 
@@ -24,12 +24,12 @@ class TestEventsPaginator:
     async def test_iterator_collect_correctly(self, event_factory):
         mock_event_names = ['first', 'second']
         mock_events = [event_factory(n) for n in mock_event_names]
-        first = EventsResponse(
+        first = EventsExternal(
             next='http://test/?cursor=xyz',
             previous=None,
             results=[mock_events[0]]
         )
-        second = EventsResponse(
+        second = EventsExternal(
             next=None,
             previous='http://test/?cursor=zyx',
             results=[mock_events[1]]
@@ -45,12 +45,12 @@ class TestEventsPaginator:
 
     @pytest.mark.asyncio
     async def test_iterator_empty(self, event_factory):
-        first = EventsResponse(
+        first = EventsExternal(
             next=None,
             previous=None,
             results=[]
         )
-        second = EventsResponse(
+        second = EventsExternal(
             next=None,
             previous=None,
             results=[event_factory()]

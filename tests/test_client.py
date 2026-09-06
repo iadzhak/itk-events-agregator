@@ -8,7 +8,7 @@ from httpx import HTTPError
 
 from app.clients.events_provider import EventsProviderClient
 from app.core import ExternalApiError
-from app.schemas.external import EventsResponse
+from app.schemas import EventsExternal
 
 
 @pytest.mark.unit
@@ -132,7 +132,7 @@ class TestEventsProviderClient:
             method='get'
         )
         response = await client.events(changed_at=self.CHANGE_AT)
-        assert isinstance(response, EventsResponse)
+        assert isinstance(response, EventsExternal)
         assert len(response.results) == 1
 
     async def test_events_return_empty_results(self):
@@ -141,7 +141,7 @@ class TestEventsProviderClient:
             method='get'
         )
         response = await client.events(changed_at=self.CHANGE_AT)
-        assert isinstance(response, EventsResponse)
+        assert isinstance(response, EventsExternal)
         assert isinstance(response.results, list)
         assert len(response.results) == 0
 
