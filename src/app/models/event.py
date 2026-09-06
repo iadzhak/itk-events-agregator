@@ -3,7 +3,7 @@ import datetime as dt
 from sqlalchemy import DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.core.db import Base, CommonMixin
+from app.core import Base, CommonMixin
 
 
 class Event(CommonMixin, Base):

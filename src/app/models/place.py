@@ -1,7 +1,7 @@
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.core.db import Base, CommonMixin
+from app.core import Base, CommonMixin
 
 
 class Place(CommonMixin, Base):

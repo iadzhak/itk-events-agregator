@@ -4,11 +4,13 @@ from collections.abc import AsyncIterator
 from typing import Self
 from urllib.parse import parse_qs, urlparse
 
-from app.clients.base import BaseProviderClient
-from app.schemas.event import EventDB
+from app.clients import BaseProviderClient
+from app.schemas import EventDB
+
+BasePaginator = AsyncIterator[EventDB]
 
 
-class EventsPaginator(AsyncIterator[EventDB]):
+class EventsPaginator(BasePaginator):
     def __init__(
             self,
             client: BaseProviderClient,

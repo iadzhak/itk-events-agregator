@@ -1,4 +1,4 @@
-from app.models.event import Event
+from app.models import Event
 from app.repository.base import BaseRepository
 
 event_repository = BaseRepository(Event)

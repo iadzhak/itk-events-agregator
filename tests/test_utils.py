@@ -4,8 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from app.clients.events_provider import EventsProviderClient
-from app.schemas.event import EventDB
-from app.schemas.external import EventsResponse
+from app.schemas import EventDB, EventsResponse
 from app.utils.events_paginator import EventsPaginator
 
 

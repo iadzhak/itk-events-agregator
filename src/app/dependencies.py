@@ -3,16 +3,16 @@ from typing import Annotated
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.clients.base import BaseProviderClient
-from app.clients.events_provider import EventsProviderClient
-from app.core.conf import settings
-from app.core.db import get_session
-from app.repository.base import BaseRepository
-from app.repository.event import get_event_repository
-from app.repository.place import get_place_repository
-from app.repository.sync import get_sync_repository
-from app.services.sync import SyncService
-from app.utils.events_paginator import EventsPaginator
+from app.clients import BaseProviderClient, EventsProviderClient
+from app.core import get_session, settings
+from app.repository import (
+    BaseRepository,
+    get_event_repository,
+    get_place_repository,
+    get_sync_repository,
+)
+from app.services import SyncService
+from app.utils import EventsPaginator
 
 
 async def get_events_provider_client():

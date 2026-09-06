@@ -6,7 +6,7 @@ from uuid import UUID
 from httpx import AsyncClient, HTTPError, Response
 
 from app.clients.base import BaseProviderClient
-from app.core.exceptions import ExternalApiError
+from app.core import ExternalApiError
 from app.schemas.external import EventsResponse
 
 

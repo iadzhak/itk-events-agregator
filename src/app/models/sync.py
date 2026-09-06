@@ -3,8 +3,8 @@ import datetime as dt
 from sqlalchemy import DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.core.db import Base
-from app.types.sync_status import SyncStatus
+from app.core import Base
+from app.types import SyncStatus
 
 DEFAULT_LAST_CHANGED_AT = dt.datetime(2000, 1, 1, tzinfo=dt.UTC)
 SYNC_STATUS_MAX_LENGTH = 10

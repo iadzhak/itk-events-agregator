@@ -7,7 +7,7 @@ import pytest
 from httpx import HTTPError
 
 from app.clients.events_provider import EventsProviderClient
-from app.core.exceptions import ExternalApiError
+from app.core import ExternalApiError
 from app.schemas.external import EventsResponse
 
 

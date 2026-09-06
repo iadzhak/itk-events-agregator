@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 from app.schemas.mixins import CommonMixin
 from app.schemas.place import PlaceDB
-from app.types.event_status import EventStatus
+from app.types import EventStatus
 
 
 class EventDB(CommonMixin, BaseModel):

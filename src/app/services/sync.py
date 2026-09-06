@@ -3,15 +3,12 @@ import datetime as dt
 from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.clients.base import BaseProviderClient
-from app.core.exceptions import ExternalApiError
-from app.core.logging import get_logger
-from app.models.event import Event
-from app.models.place import Place
-from app.models.sync import SyncMeta
-from app.repository.base import BaseRepository
-from app.types.sync_status import SyncStatus
-from app.utils.events_paginator import EventsPaginator
+from app.clients import BaseProviderClient
+from app.core import ExternalApiError, get_logger
+from app.models import Event, Place, SyncMeta
+from app.repository import BaseRepository
+from app.types import SyncStatus
+from app.utils import BasePaginator
 
 logger = get_logger(__name__)
 
@@ -22,7 +19,7 @@ class SyncService:
     def __init__(
             self,
             client: BaseProviderClient,
-            paginator_class: type[EventsPaginator],
+            paginator_class: type[BasePaginator],
             sync_repo: BaseRepository[SyncMeta],
             events_repo: BaseRepository[Event],
             place_repo: BaseRepository[Place]

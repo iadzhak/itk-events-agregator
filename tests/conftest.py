@@ -6,8 +6,7 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
 from app.main import app
-from app.schemas.event import EventDB
-from app.schemas.place import PlaceDB
+from app.schemas import EventDB, PlaceDB
 
 
 def generate_date(days_delta: int = 0):
