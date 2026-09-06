@@ -2,6 +2,7 @@ from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -12,7 +13,10 @@ class BaseRepository[T]:
     async def create(self, data: dict, session: AsyncSession) -> T:
         db_obj = self.model(**data)
         session.add(db_obj)
-        await session.commit()
+        try:
+            await session.commit()
+        except IntegrityError:
+            db_obj = await self.get_by_id(data['id'], session)
         return db_obj
 
     async def get_by_id(
