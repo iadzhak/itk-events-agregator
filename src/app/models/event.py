@@ -1,7 +1,12 @@
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .place import Place
+
 import datetime as dt
 
 from sqlalchemy import DateTime, ForeignKey, Integer, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core import Base, CommonMixin
 
@@ -17,3 +22,5 @@ class Event(CommonMixin, Base):
         DateTime(timezone=True)
     )
     place_id: Mapped[int] = mapped_column(ForeignKey('place.id'))
+
+    place: Mapped['Place'] = relationship(back_populates='events')
