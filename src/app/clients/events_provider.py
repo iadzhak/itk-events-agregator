@@ -7,7 +7,7 @@ from httpx import AsyncClient, HTTPError, Response
 
 from app.clients.base import BaseProviderClient
 from app.core import ExternalApiError
-from app.schemas.external import EventsResponse
+from app.schemas import EventsExternal
 
 
 class EventsProviderClient(BaseProviderClient):
@@ -41,14 +41,14 @@ class EventsProviderClient(BaseProviderClient):
             self,
             changed_at: dt.datetime,
             cursor: str | None = None
-    ) -> EventsResponse:
+    ) -> EventsExternal:
         params = {'changed_at': changed_at.strftime('%Y-%m-%d')}
         if cursor is not None:
             params['cursor'] = cursor
         request = self._client.get(self.EVENTS_URL, params=params)
         response = await self._handle_response(request)
         data = response.json()
-        return EventsResponse(**data)
+        return EventsExternal(**data)
 
     async def seats(self, event_id: UUID) -> list[str]:
         url = self.SEATS_URL.format(event_id=str(event_id))

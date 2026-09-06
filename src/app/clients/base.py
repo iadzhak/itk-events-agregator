@@ -2,7 +2,7 @@ import datetime as dt
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from app.schemas.external import EventsResponse
+from app.schemas import EventsExternal
 
 
 class BaseProviderClient(ABC):
@@ -12,7 +12,7 @@ class BaseProviderClient(ABC):
             self,
             changed_at: dt.datetime,
             cursor: str | None = None
-    ) -> EventsResponse:
+    ) -> EventsExternal:
         pass
 
     @abstractmethod

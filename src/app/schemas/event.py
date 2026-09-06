@@ -19,14 +19,14 @@ class EventOut(EventBase):
     status: EventStatus | str
     number_of_visitors: int
 
+    model_config = ConfigDict(from_attributes=True)
+
 
 class EventDB(EventOut):
     place: PlaceDB
     status_changed_at: dt.datetime
     changed_at: dt.datetime
     created_at: dt.datetime
-
-    model_config = ConfigDict(from_attributes=True)
 
 
 class EventsExternal(BaseModel):
