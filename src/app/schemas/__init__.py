@@ -1,9 +1,13 @@
 __all__ = [
     'EventDB',
-    'EventsResponse',
+    'EventFilter',
+    'EventOut',
+    'EventsExternal',
+    'PaginatedResponse',
+    'Pagination',
     'PlaceDB'
 ]
 
-from app.schemas.event import EventDB
-from app.schemas.external import EventsResponse
+from app.schemas.event import EventDB, EventFilter, EventOut, EventsExternal
+from app.schemas.pagination import PaginatedResponse, Pagination
 from app.schemas.place import PlaceDB

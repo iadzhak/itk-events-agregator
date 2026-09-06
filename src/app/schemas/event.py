@@ -1,16 +1,42 @@
 import datetime as dt
+from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
-from app.schemas.mixins import CommonMixin
-from app.schemas.place import PlaceDB
+from app.schemas.place import PlaceDB, PlaceOut
 from app.types import EventStatus
 
 
-class EventDB(CommonMixin, BaseModel):
-    place: PlaceDB
+class EventBase(BaseModel):
+    id: UUID
+    name: str
+
+
+class EventOut(EventBase):
+    place: PlaceOut
     event_time: dt.datetime
     registration_deadline: dt.datetime
     status: EventStatus | str
     number_of_visitors: int
+
+
+class EventDB(EventOut):
+    place: PlaceDB
     status_changed_at: dt.datetime
+    changed_at: dt.datetime
+    created_at: dt.datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class EventsExternal(BaseModel):
+    next: HttpUrl | None
+    previous: HttpUrl | None
+    results: list[EventDB]
+
+
+class EventFilter(BaseModel):
+    date_from: dt.date | None = Field(
+        None,
+        description='События после этой даты (YYYY-MM-DD)'
+    )
