@@ -14,17 +14,17 @@ class Settings(BaseSettings):
     provider_base_url: str = 'http://events-provider.dev-2.python-labs.ru'
     provider_api_key: str = ''
 
-    db_host: str = 'localhost'
-    postgres_user: str = 'postgres'
+    postgres_host: str = 'localhost'
+    postgres_username: str = 'postgres'
     postgres_password: str = 'postgres'
-    postgres_db: str = 'postgres'
+    postgres_database_name: str = 'postgres'
     postgres_port: int = 5432
 
     @property
     def db_url(self) -> str:
         return (
-            f'postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}'
-            f'@{self.db_host}:{self.postgres_port}/{self.postgres_db}'
+            f'postgresql+asyncpg://{self.postgres_username}:{self.postgres_password}'
+            f'@{self.postgres_host}:{self.postgres_port}/{self.postgres_database_name}'
         )
 
     @field_validator('origins', mode='before')

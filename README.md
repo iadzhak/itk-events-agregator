@@ -10,19 +10,19 @@ FastAPI-приложение для агрегации событий от Event
 cp .env.example .env
 ```
 
-| Переменная          | Описание                                           | По умолчанию                                  |
-|---------------------|----------------------------------------------------|-----------------------------------------------|
-| `APP_TITLE`         | Заголовок приложения                               | `Events Aggregator`                           |
-| `APP_DESCRIPTION`   | Описание приложения                                | `Special aggregator for Events Provider API`  |
-| `ORIGINS`           | Список разрешённых CORS-источников (через запятую) | `*`                                           |
-| `UPDATE_INTERVAL_H` | Интервал обновления данных в часах                 | `24`                                          |
-| `PROVIDER_BASE_URL` | Базовый URL Events Provider API                    | `http://events-provider.dev-2.python-labs.ru` |
-| `PROVIDER_API_KEY`  | API-ключ для Events Provider API                   | ``                                            |
-| `DB_HOST`           | Хост PostgreSQL                                    | `localhost`                                   |
-| `POSTGRES_USER`     | Имя пользователя PostgreSQL                        | `postgres`                                    |
-| `POSTGRES_PASSWORD` | Пароль PostgreSQL                                  | `postgres`                                    |
-| `POSTGRES_DB`       | Имя базы данных PostgreSQL                         | `postgres`                                    |
-| `POSTGRES_PORT`     | Порт PostgreSQL                                    | `5432`                                        |
+| Переменная                | Описание                                           | По умолчанию                                  |
+|---------------------------|----------------------------------------------------|-----------------------------------------------|
+| `APP_TITLE`               | Заголовок приложения                               | `Events Aggregator`                           |
+| `APP_DESCRIPTION`         | Описание приложения                                | `Special aggregator for Events Provider API`  |
+| `ORIGINS`                 | Список разрешённых CORS-источников (через запятую) | `*`                                           |
+| `UPDATE_INTERVAL_H`       | Интервал обновления данных в часах                 | `24`                                          |
+| `PROVIDER_BASE_URL`       | Базовый URL Events Provider API                    | `http://events-provider.dev-2.python-labs.ru` |
+| `PROVIDER_API_KEY`        | API-ключ для Events Provider API                   | ``                                            |
+| `POSTGRES_HOST`           | Хост PostgreSQL                                    | `localhost`                                   |
+| `POSTGRES_USERNAME`       | Имя пользователя PostgreSQL                        | `postgres`                                    |
+| `POSTGRES_PASSWORD`       | Пароль PostgreSQL                                  | `postgres`                                    |
+| `POSTGRES_DATABASE_NAME`  | Имя базы данных PostgreSQL                         | `postgres`                                    |
+| `POSTGRES_PORT`           | Порт PostgreSQL                                    | `5432`                                        |
 
 ## Линтинг
 
