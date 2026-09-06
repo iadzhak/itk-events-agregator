@@ -47,3 +47,7 @@ class EventsPaginator(BasePaginator):
         parsed = urlparse(url)
         query = parse_qs(parsed.query)
         return query.get('cursor', [None])[0]
+
+
+def get_events_paginator_class():
+    return EventsPaginator
