@@ -1,9 +1,9 @@
 import datetime as dt
-import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.clients.base import BaseProviderClient
+from app.core.logging import get_logger
 from app.models.event import Event
 from app.models.place import Place
 from app.models.sync import SyncMeta
@@ -11,7 +11,7 @@ from app.repository.base import BaseRepository
 from app.types.sync_status import SyncStatus
 from app.utils.events_paginator import EventsPaginator
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class SyncService:
@@ -63,7 +63,7 @@ class SyncService:
             logger.exception(f'Ошибка фоновой синхронизации от {now!s}')
         finally:
             await session.commit()
-        logger.info(f'Фоновая синхронизация от {now!s} завершена')
+        logger.info(f'Завершена фоновая синхронизация от {now!s}')
 
     async def _proceed_db_obj(
             self,
