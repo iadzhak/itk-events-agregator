@@ -7,11 +7,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.clients import BaseProviderClient, EventsProviderClient
 from app.core import get_session, settings
 from app.flows import AvailableSeatsUseCase, CreateTicketUseCase
-from app.models import Event, Place, SyncMeta
+from app.models import Event, Place, SyncMeta, Ticket
 from app.repository import (
     EventRepository,
     PlaceRepository,
     SyncRepository,
+    TicketRepository,
 )
 from app.services import EventService, SyncService, get_seats_cache
 from app.utils import EventsPaginator, get_events_paginator_class
@@ -39,9 +40,14 @@ def get_sync_repository(session: SessionDep) -> SyncRepository:
     return SyncRepository(model=SyncMeta, session=session)
 
 
+def get_ticket_repository(session: SessionDep) -> TicketRepository:
+    return TicketRepository(model=Ticket, session=session)
+
+
 EventsRepoDep = Annotated[EventRepository, Depends(get_event_repository)]
 PlaceRepoDep = Annotated[PlaceRepository, Depends(get_place_repository)]
 SyncRepoDep = Annotated[SyncRepository, Depends(get_sync_repository)]
+TicketRepoDep = Annotated[TicketRepository, Depends(get_ticket_repository)]
 
 EventsProviderClientDep = Annotated[
     BaseProviderClient,
@@ -102,12 +108,13 @@ AvailableSeatsUseCaseDep = Annotated[
 ]
 
 
-def get_create_ticket_usecase(
+def get_create_ticket_use_case(
         client: EventsProviderClientDep,
-        repo: EventsRepoDep
+        events: EventsRepoDep,
+        tickets: TicketRepoDep
 ) -> CreateTicketUseCase:
-    return CreateTicketUseCase(client, repo)
+    return CreateTicketUseCase(client, events, tickets)
 
 
 CreateTicketUseCaseDep = Annotated[
-    CreateTicketUseCase, Depends(get_create_ticket_usecase)]
+    CreateTicketUseCase, Depends(get_create_ticket_use_case)]
