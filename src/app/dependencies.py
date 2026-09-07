@@ -7,7 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.clients import EventsProviderClient
 from app.core import get_session, settings
 from app.flows import CancelTicketUseCase, CreateTicketUseCase
-from app.models import Event, Place, SyncMeta, Ticket
 from app.repository import (
     EventRepository,
     PlaceRepository,
@@ -29,19 +28,19 @@ SessionDep = Annotated[AsyncSession, Depends(get_session)]
 
 
 def get_event_repository(session: SessionDep) -> EventRepository:
-    return EventRepository(model=Event, session=session)
+    return EventRepository(session)
 
 
 def get_place_repository(session: SessionDep) -> PlaceRepository:
-    return PlaceRepository(model=Place, session=session)
+    return PlaceRepository(session)
 
 
 def get_sync_repository(session: SessionDep) -> SyncRepository:
-    return SyncRepository(model=SyncMeta, session=session)
+    return SyncRepository(session)
 
 
 def get_ticket_repository(session: SessionDep) -> TicketRepository:
-    return TicketRepository(model=Ticket, session=session)
+    return TicketRepository(session)
 
 
 EventsRepoDep = Annotated[EventRepository, Depends(get_event_repository)]

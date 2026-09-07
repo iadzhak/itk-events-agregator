@@ -9,6 +9,7 @@ from app.schemas import EventFilter
 
 
 class EventRepository(BaseRepository):
+    model = Event
 
     def _apply_filters(self, stmt: Select, filters: EventFilter) -> Select:
         if filters.date_from is not None:

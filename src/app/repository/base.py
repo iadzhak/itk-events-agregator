@@ -6,8 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class BaseRepository[T]:
-    def __init__(self, model: type[T], session: AsyncSession) -> None:
-        self.model = model
+    model: type[T]
+
+    def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
     async def create(self, data: dict) -> T:
