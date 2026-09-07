@@ -12,11 +12,11 @@ class PlaceBase(BaseModel):
 class PlaceOut(PlaceBase):
     city: str
     address: str
-    
+    seats_pattern: str
+
     model_config = ConfigDict(from_attributes=True)
 
 
 class PlaceDB(PlaceOut):
-    seats_pattern: str
     changed_at: dt.datetime
     created_at: dt.datetime
