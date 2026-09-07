@@ -3,7 +3,7 @@ from collections.abc import Coroutine
 from typing import Any
 from uuid import UUID
 
-from httpx import AsyncClient, HTTPError, Response
+from httpx import AsyncClient, AsyncHTTPTransport, HTTPError, Response
 
 from app.clients.base import BaseProviderClient
 from app.core import ExternalApiError
@@ -16,14 +16,15 @@ class EventsProviderClient(BaseProviderClient):
     REGISTER_URL = '/api/events/{event_id}/register/'
     CANCEL_URL = '/api/events/{event_id}/unregister/'
 
-    def __init__(self, base_url: str, api_key: str) -> None:
+    def __init__(self, base_url: str, api_key: str, retries: int) -> None:
         headers = {
             'x-api-key': api_key
         }
         self._client = AsyncClient(
             base_url=base_url,
             headers=headers,
-            follow_redirects=True
+            follow_redirects=True,
+            transport=AsyncHTTPTransport(retries=retries)
         )
 
     async def _handle_response(
@@ -94,3 +95,6 @@ class EventsProviderClient(BaseProviderClient):
         response = await self._handle_response(request)
         data = response.json()
         return data.get('success', False)
+
+    async def aclose(self) -> None:
+        await self._client.aclose()

@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     update_interval_h: int = 24
     provider_base_url: str = 'http://events-provider.dev-2.python-labs.ru'
     provider_api_key: str = ''
+    provider_retries: int = 3
 
     postgres_host: str = 'localhost'
     postgres_username: str = 'postgres'

@@ -17,11 +17,14 @@ from app.services import EventService, SyncService, get_seats_cache
 from app.utils import EventsPaginator, get_events_paginator_class
 
 
-def get_events_provider_client():
-    return EventsProviderClient(
+async def get_events_provider_client():
+    client = EventsProviderClient(
         base_url=settings.provider_base_url,
-        api_key=settings.provider_api_key
+        api_key=settings.provider_api_key,
+        retries=settings.provider_retries
     )
+    yield client
+    await client.aclose()
 
 
 SessionDep = Annotated[AsyncSession, Depends(get_session)]

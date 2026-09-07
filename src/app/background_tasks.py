@@ -1,3 +1,5 @@
+from app.clients import EventsProviderClient
+from app.core import settings
 from app.core.db import AsyncSessionLocal
 from app.dependencies import (
     get_event_repository,
@@ -11,11 +13,17 @@ from app.utils import EventsPaginator
 
 async def sync_meta_once():
     async with AsyncSessionLocal() as session:
+        client = EventsProviderClient(
+            base_url=settings.provider_base_url,
+            api_key=settings.provider_api_key,
+            retries=settings.provider_retries
+        )
         service = get_sync_service(
-            client=get_events_provider_client(),
+            client=client,
             paginator_class=EventsPaginator,
             sync_repo=get_sync_repository(session),
             events_repo=get_event_repository(session),
             place_repo=get_place_repository(session)
         )
         await service.run(session)
+        await client.aclose()
