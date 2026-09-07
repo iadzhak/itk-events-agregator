@@ -11,3 +11,9 @@ class TicketRepository(BaseRepository):
         stmt = select(Ticket).where(Ticket.id == ticket_id)
         result = await self.session.execute(stmt)
         return result.scalars().first()
+
+    async def create(self, data: dict) -> Ticket:
+        ticket = Ticket(**data)
+        self.session.add(ticket)
+        await self.session.commit()
+        return ticket
