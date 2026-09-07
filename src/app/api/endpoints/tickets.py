@@ -1,7 +1,9 @@
+from uuid import UUID
+
 from fastapi import APIRouter, status
 
-from app.dependencies import CreateTicketUseCaseDep
-from app.schemas import Ticket, UserBuyTicket
+from app.dependencies import CancelTicketUseCaseDep, CreateTicketUseCaseDep
+from app.schemas import CancelTicket, Ticket, UserBuyTicket
 
 router = APIRouter()
 
@@ -14,6 +16,9 @@ async def register_for_event(
     return await service.do(**form.model_dump())
 
 
-@router.delete('/{ticket_id}')
-async def cancel_registration():
-    return None
+@router.delete('/{ticket_id}', response_model=CancelTicket)
+async def cancel_registration(
+        ticket_id: UUID,
+        service: CancelTicketUseCaseDep
+):
+    return await service.do(ticket_id)

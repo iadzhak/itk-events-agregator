@@ -4,9 +4,9 @@ from cachetools import TTLCache
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.clients import BaseProviderClient, EventsProviderClient
+from app.clients import EventsProviderClient
 from app.core import get_session, settings
-from app.flows import CreateTicketUseCase
+from app.flows import CancelTicketUseCase, CreateTicketUseCase
 from app.models import Event, Place, SyncMeta, Ticket
 from app.repository import (
     EventRepository,
@@ -50,7 +50,7 @@ SyncRepoDep = Annotated[SyncRepository, Depends(get_sync_repository)]
 TicketRepoDep = Annotated[TicketRepository, Depends(get_ticket_repository)]
 
 EventsProviderClientDep = Annotated[
-    BaseProviderClient,
+    EventsProviderClient,
     Depends(get_events_provider_client)
 ]
 EventsPaginatorClassDep = Annotated[
@@ -105,3 +105,16 @@ def get_create_ticket_use_case(
 
 CreateTicketUseCaseDep = Annotated[
     CreateTicketUseCase, Depends(get_create_ticket_use_case)]
+
+
+def get_cancel_ticket_use_case(
+        client: EventsProviderClientDep,
+        tickets: TicketRepoDep
+) -> CancelTicketUseCase:
+    return CancelTicketUseCase(client, tickets)
+
+
+CancelTicketUseCaseDep = Annotated[
+    CancelTicketUseCase,
+    Depends(get_cancel_ticket_use_case)
+]

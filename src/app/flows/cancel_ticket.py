@@ -2,8 +2,8 @@ import datetime as dt
 from uuid import UUID
 
 from app.clients import EventsProviderClient
-from app.core import TicketNotFound, EventPassed, ExternalApiError
-from app.repository import EventRepository, TicketRepository
+from app.core import EventPassed, ExternalApiError, TicketNotFound
+from app.repository import TicketRepository
 from app.schemas import CancelTicket
 
 
@@ -25,7 +25,7 @@ class CancelTicketUseCase:
             )
 
         # check event has not passed
-        now = dt.datetime.now(tz=dt.timezone.utc)
+        now = dt.datetime.now(tz=dt.UTC)
         if now >= ticket.event.event_time:
             raise EventPassed(
                 f'Мероприятие "{ticket.event.name}" уже прошло'
