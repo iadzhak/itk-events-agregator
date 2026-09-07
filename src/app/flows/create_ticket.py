@@ -75,9 +75,14 @@ class CreateTicketUseCase:
             seat,
             email
         )
+        if ticket_id is None:
+            raise BadRequest(
+                'Не удалось получить ticket_id от провайдера'
+            )
 
         # save ticket in db
         data = {
+            'ticket_id': ticket_id,
             'event_id': event_id,
             'first_name': first_name,
             'last_name': last_name,

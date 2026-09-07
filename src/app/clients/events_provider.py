@@ -75,7 +75,12 @@ class EventsProviderClient(BaseProviderClient):
         request = self._client.post(url, json=body)
         response = await self._handle_response(request)
         data = response.json()
-        return UUID(data.get('ticket_id'))
+        ticket_id = data.get('ticket_id')
+        if ticket_id is None:
+            raise ExternalApiError(
+                f'Провайдер не вернул ticket_id в ответе: {data}'
+            )
+        return UUID(ticket_id)
 
     async def cancel(self, event_id: UUID, ticket_id: UUID) -> bool:
         body = {
