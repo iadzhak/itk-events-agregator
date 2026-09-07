@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+from uuid import UUID
 
 if TYPE_CHECKING:
     from .place import Place
@@ -22,7 +23,7 @@ class Event(CommonMixin, Base):
     status_changed_at: Mapped[dt.datetime] = mapped_column(
         DateTime(timezone=True)
     )
-    place_id: Mapped[int] = mapped_column(ForeignKey('place.id'))
+    place_id: Mapped[UUID] = mapped_column(ForeignKey('place.id'))
 
     place: Mapped['Place'] = relationship(
         back_populates='events',
