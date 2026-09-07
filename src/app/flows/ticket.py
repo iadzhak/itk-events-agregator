@@ -5,19 +5,21 @@ from uuid import UUID
 from app.clients import BaseProviderClient
 from app.core import EventRegistrationDeadline, EventUnavailableSeat
 from app.core.exceptions import EventNotFound, EventUnexpectedStatus
-from app.repository import EventRepository
-from app.types import EventStatus
+from app.repository import EventRepository, TicketRepository
 from app.schemas import Ticket
+from app.types import EventStatus
 
 
 class CreateTicketUseCase:
     def __init__(
             self,
             client: BaseProviderClient,
-            events: EventRepository
+            events: EventRepository,
+            tickets: TicketRepository
     ) -> None:
         self._client = client
         self._events = events
+        self._tickets = tickets
 
     async def do(
             self,
@@ -54,6 +56,9 @@ class CreateTicketUseCase:
         self.is_seat_exist(seat, event.place.seats_pattern)
 
         # check seat is free (internal db)
+        seats_in_db = [t.seat for t in event.tickets]
+        if seat in seats_in_db:
+            raise EventUnexpectedStatus(f'Место {seat} уже занято.')
 
         # check seat is free (external api)
         seats = await self._client.seats(event_id)
@@ -73,6 +78,14 @@ class CreateTicketUseCase:
         )
 
         # save ticket in db
+        data = {
+            'event_id': event_id,
+            'first_name': first_name,
+            'last_name': last_name,
+            'email': email,
+            'seat': seat
+        }
+        await self._tickets.create(data)
 
         # return response
         return Ticket(ticket_id=ticket_id)
