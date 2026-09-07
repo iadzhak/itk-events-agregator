@@ -6,7 +6,7 @@ from app.schemas import UserBuyTicket
 router = APIRouter()
 
 
-@router.post('/')
+@router.post('')
 async def register_for_event(
         form: UserBuyTicket,
         service: CreateTicketUseCaseDep,
