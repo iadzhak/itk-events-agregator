@@ -1,4 +1,5 @@
 from typing import cast
+from uuid import UUID
 
 from sqlalchemy import Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,6 +17,9 @@ class EventRepository(BaseRepository):
             stmt = stmt.where(Event.event_time >= filters.date_from)
         return stmt
 
+    def _select_joined(self) -> Select:
+        return select(Event).options(joinedload(Event.place))
+
     async def get_paginated(
             self,
             filters: EventFilter,
@@ -23,7 +27,7 @@ class EventRepository(BaseRepository):
             offset: int,
             session: AsyncSession
     ) -> tuple[list[Event], int]:
-        stmt = select(Event).options(joinedload(Event.place))
+        stmt = self._select_joined()
         stmt = self._apply_filters(stmt, filters)
         stmt = stmt.order_by(Event.event_time).limit(limit).offset(offset)
 
@@ -36,6 +40,15 @@ class EventRepository(BaseRepository):
         result_count = await session.execute(count_stmt)
         count = cast(int, result_count.scalar_one())
         return items, count
+
+    async def get_detail(
+            self,
+            _id: UUID,
+            session: AsyncSession
+    ) -> Event | None:
+        stmt = self._select_joined().where(Event.id == _id)
+        result = await session.execute(stmt)
+        return result.scalars().first()
 
 
 event_repository = EventRepository(Event)
