@@ -1,6 +1,5 @@
 from uuid import UUID
 
-from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -29,8 +28,8 @@ class BaseRepository[T]:
         return result.scalars().first()
 
     async def update(self, db_obj: T, data: dict, session: AsyncSession) -> T:
-        db_obj_data = jsonable_encoder(db_obj)
-        for key in db_obj_data:
+        columns = self.model.__mapper__.columns.keys()
+        for key in columns:
             if key in data:
                 setattr(db_obj, key, data[key])
         session.add(db_obj)
