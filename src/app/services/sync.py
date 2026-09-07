@@ -37,11 +37,11 @@ class SyncService:
             meta = await self._sync_repo.create({'id': self.DEFAULT_ID})
         return meta
 
-    async def run(self, session: AsyncSession):
+    async def run(self, session: AsyncSession) -> dt.datetime:
         meta = await self.get_meta()
         if meta.sync_status == SyncStatus.RUNNING:
             logger.info('Синхронизация уже идет')
-            return
+            return meta.last_sync_time
         now = dt.datetime.now(tz=dt.UTC)
         meta.sync_status = SyncStatus.RUNNING
         meta.last_sync_time = now
@@ -60,6 +60,7 @@ class SyncService:
         finally:
             await session.commit()
         logger.info(f'Завершена фоновая синхронизация от {now!s}')
+        return meta.last_sync_time
 
     async def _proceed_db_obj(
             self,
