@@ -11,4 +11,4 @@ class User(BaseModel):
 
 class UserBuyTicket(User):
     event_id: UUID
-    seat: str = Field(..., pattern=r'^[A-Z][1-9]\d*$')
+    seat: str = Field(..., pattern=r'^[A-Z][1-9]\d*$', examples=['A17'])

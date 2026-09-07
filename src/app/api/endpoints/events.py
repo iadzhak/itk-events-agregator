@@ -27,14 +27,12 @@ async def get_all_events(
         filters: Annotated[EventFilter, Depends()],
         pagination: Annotated[Pagination, Depends()],
         event_service: EventServiceDep,
-        session: SessionDep,
         request: Request
 ):
     return await event_service.get_paginated(
         request=request,
         filters=filters,
         pagination=pagination,
-        session=session
     )
 
 
@@ -42,9 +40,8 @@ async def get_all_events(
 async def get_event_details(
         event_id: UUID,
         event_service: EventServiceDep,
-        session: SessionDep
 ):
-    return await event_service.get(event_id=event_id, session=session)
+    return await event_service.get(event_id)
 
 
 @router.get('/{event_id}/seats', response_model=EventSeatsResponse)

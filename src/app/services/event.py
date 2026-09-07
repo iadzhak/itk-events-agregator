@@ -1,26 +1,45 @@
 from uuid import UUID
 
+from cachetools import TTLCache
 from fastapi import Request
 from pydantic import HttpUrl
-from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.clients import BaseProviderClient
 from app.core import EventNotFound
 from app.repository import EventRepository
-from app.schemas import EventFilter, EventOut, PaginatedResponse, Pagination
+from app.schemas import (
+    EventFilter,
+    EventOut,
+    EventSeatsResponse,
+    PaginatedResponse,
+    Pagination,
+)
+
+CACHE_MAX_SIZE = 30
+CACHE_TTL = 30
+
+seats_cache = TTLCache(maxsize=CACHE_MAX_SIZE, ttl=CACHE_TTL)
+
+
+def get_seats_cache():
+    return seats_cache
 
 
 class EventService:
-    def __init__(self, repo: EventRepository):
-        self.repo = repo
-
-    async def get(
+    def __init__(
             self,
-            event_id: UUID,
-            session: AsyncSession
-    ) -> EventOut:
-        event = await self.repo.get_by_id(event_id, session)
+            client: BaseProviderClient,
+            repo: EventRepository,
+            cache: TTLCache
+    ):
+        self._client = client
+        self._repo = repo
+        self._cache = cache
+
+    async def get(self, event_id: UUID) -> EventOut:
+        event = await self._repo.get_by_id(event_id)
         if event is None:
-            raise EventNotFound(f'Мероприятие id "{str(event_id)}" не найдено')
+            raise EventNotFound(f'Мероприятие id "{event_id!s}" не найдено')
         return EventOut.model_validate(event)
 
     async def get_paginated(
@@ -28,15 +47,13 @@ class EventService:
             filters: EventFilter,
             pagination: Pagination,
             request: Request,
-            session: AsyncSession,
     ) -> PaginatedResponse[EventOut]:
         limit = pagination.page_size
         offset = (pagination.page - 1) * limit
-        items, total = await self.repo.get_paginated(
+        items, total = await self._repo.get_paginated(
             filters=filters,
             limit=limit,
-            offset=offset,
-            session=session
+            offset=offset
         )
 
         next_url = None
@@ -55,4 +72,22 @@ class EventService:
             next=HttpUrl(next_url) if next_url else None,
             previous=HttpUrl(previous_url) if previous_url else None,
             results=[EventOut.model_validate(i) for i in items]
+        )
+
+    async def get_available_seats(self, event_id: UUID) -> list[str]:
+        event = await self.get(event_id)
+        seats = await self._client.seats(event.id)
+        self._cache[event_id] = tuple(seats)
+        return seats
+
+    async def get_available_seats_cached(
+            self,
+            event_id: UUID
+    ) -> EventSeatsResponse:
+        if event_id not in self._cache:
+            await self.get_available_seats(event_id)
+        seats = self._cache[event_id]
+        return EventSeatsResponse(
+            event_id=event_id,
+            available_seats=list(seats)
         )

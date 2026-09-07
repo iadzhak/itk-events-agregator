@@ -32,12 +32,9 @@ class SyncService:
         self._place_repo = place_repo
 
     async def get_meta(self, session: AsyncSession) -> SyncMeta:
-        meta = await self._sync_repo.get_by_id(self.DEFAULT_ID, session)
+        meta = await self._sync_repo.get_by_id(self.DEFAULT_ID)
         if meta is None:
-            meta = await self._sync_repo.create(
-                {'id': self.DEFAULT_ID},
-                session
-            )
+            meta = await self._sync_repo.create({'id': self.DEFAULT_ID})
         return meta
 
     async def run(self, session: AsyncSession):
@@ -70,21 +67,11 @@ class SyncService:
             repo: BaseRepository[Event | Place],
             session: AsyncSession
     ):
-        db_obj = await repo.get_by_id(
-            _id=data['id'],
-            session=session
-        )
+        db_obj = await repo.get_by_id(_id=data['id'])
         if db_obj is None:
-            db_obj = await repo.create(
-                data=data,
-                session=session
-            )
+            db_obj = await repo.create(data=data)
         if data['changed_at'] != db_obj.changed_at:
-            await repo.update(
-                db_obj=db_obj,
-                data=data,
-                session=session
-            )
+            await repo.update(db_obj=db_obj, data=data)
 
     async def _proceed_events(self, meta: SyncMeta, session: AsyncSession):
         last_event = None
