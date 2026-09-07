@@ -18,12 +18,11 @@ class Ticket(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    ticket_id: Mapped[UUID] = mapped_column(UUID_sa)
+    ticket_id: Mapped[UUID] = mapped_column(UUID_sa, nullable=False)
     seat: Mapped[str] = mapped_column(String, nullable=False)
     event_id: Mapped[UUID] = mapped_column(ForeignKey('event.id'))
-    sold: Mapped[bool] = mapped_column(Boolean)
-    first_name: Mapped[str | None] = mapped_column(String, nullable=True)
-    last_name: Mapped[str | None] = mapped_column(String, nullable=True)
-    email: Mapped[str | None] = mapped_column(String, nullable=True)
+    first_name: Mapped[str] = mapped_column(String)
+    last_name: Mapped[str] = mapped_column(String)
+    email: Mapped[str] = mapped_column(String)
 
     event: Mapped['Event'] = relationship(back_populates='tickets')
