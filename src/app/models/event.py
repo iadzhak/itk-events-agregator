@@ -23,4 +23,7 @@ class Event(CommonMixin, Base):
     )
     place_id: Mapped[int] = mapped_column(ForeignKey('place.id'))
 
-    place: Mapped['Place'] = relationship(back_populates='events')
+    place: Mapped['Place'] = relationship(
+        back_populates='events',
+        lazy='selectin'
+    )

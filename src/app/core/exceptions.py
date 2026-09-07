@@ -1,2 +1,14 @@
 class ExternalApiError(Exception):
     """Ошибка внешнего API клиента"""
+
+
+class EventBaseException(Exception):
+    pass
+
+
+class EventNotFound(EventBaseException):
+    """Мероприятие не найдено"""
+
+
+class EventUnexpectedStatus(EventBaseException):
+    """Несоответствующий статус мероприятия"""

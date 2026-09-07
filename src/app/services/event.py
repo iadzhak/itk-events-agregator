@@ -1,7 +1,10 @@
+from uuid import UUID
+
 from fastapi import Request
 from pydantic import HttpUrl
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core import EventNotFound
 from app.repository import EventRepository
 from app.schemas import EventFilter, EventOut, PaginatedResponse, Pagination
 
@@ -10,11 +13,21 @@ class EventService:
     def __init__(self, repo: EventRepository):
         self.repo = repo
 
+    async def get(
+            self,
+            event_id: UUID,
+            session: AsyncSession
+    ) -> EventOut:
+        event = await self.repo.get_by_id(event_id, session)
+        if event is None:
+            raise EventNotFound(f'Мероприятие id "{str(event_id)}" не найдено')
+        return EventOut.model_validate(event)
+
     async def get_paginated(
             self,
-            request: Request,
             filters: EventFilter,
             pagination: Pagination,
+            request: Request,
             session: AsyncSession,
     ) -> PaginatedResponse[EventOut]:
         limit = pagination.page_size

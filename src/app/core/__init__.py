@@ -4,10 +4,18 @@ __all__ = [
     'ExternalApiError',
     'get_logger',
     'get_session',
-    'settings'
+    'settings',
+    'EventBaseException',
+    'EventUnexpectedStatus',
+    'EventNotFound'
 ]
 
 from app.core.conf import settings
 from app.core.db import Base, CommonMixin, get_session
-from app.core.exceptions import ExternalApiError
+from app.core.exceptions import (
+    ExternalApiError,
+    EventBaseException,
+    EventUnexpectedStatus,
+    EventNotFound
+)
 from app.core.logging import get_logger
