@@ -1,10 +1,12 @@
 from typing import Annotated
 
+from cachetools import TTLCache
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.clients import BaseProviderClient, EventsProviderClient
 from app.core import get_session, settings
+from app.flows import AvailableSeatsUseCase, get_seats_cache
 from app.repository import (
     BaseRepository,
     EventRepository,
@@ -63,3 +65,17 @@ def get_events_service(repo: EventsRepoDep):
 
 
 EventServiceDep = Annotated[EventService, Depends(get_events_service)]
+SeatsCacheDep = Annotated[TTLCache, Depends(get_seats_cache)]
+
+
+def get_available_seats_use_case(
+        client: EventsProviderClientDep,
+        cache: SeatsCacheDep
+) -> AvailableSeatsUseCase:
+    return AvailableSeatsUseCase(client, cache)
+
+
+AvailableSeatsUseCaseDep = Annotated[
+    AvailableSeatsUseCase,
+    Depends(get_available_seats_use_case)
+]
