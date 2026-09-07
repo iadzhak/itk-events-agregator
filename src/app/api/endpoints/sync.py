@@ -1,15 +1,13 @@
 from fastapi import APIRouter, BackgroundTasks
 
-from app.dependencies import SessionDep, SyncServiceDep
+from app.background_tasks import sync_meta_once
 
 router = APIRouter()
 
 
 @router.post('/trigger')
 async def trigger_sync(
-        session: SessionDep,
-        service: SyncServiceDep,
         background_tasks: BackgroundTasks
 ):
-    background_tasks.add_task(service.run, session)
-    return 'Planned'
+    background_tasks.add_task(sync_meta_once)
+    return {'status': 'ok'}

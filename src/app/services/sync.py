@@ -31,14 +31,14 @@ class SyncService:
         self._events_repo = events_repo
         self._place_repo = place_repo
 
-    async def get_meta(self, session: AsyncSession) -> SyncMeta:
+    async def get_meta(self) -> SyncMeta:
         meta = await self._sync_repo.get_by_id(self.DEFAULT_ID)
         if meta is None:
             meta = await self._sync_repo.create({'id': self.DEFAULT_ID})
         return meta
 
     async def run(self, session: AsyncSession):
-        meta = await self.get_meta(session)
+        meta = await self.get_meta()
         if meta.sync_status == SyncStatus.RUNNING:
             logger.info('Синхронизация уже идет')
             return
