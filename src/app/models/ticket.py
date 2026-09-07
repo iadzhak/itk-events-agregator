@@ -25,4 +25,7 @@ class Ticket(Base):
     last_name: Mapped[str] = mapped_column(String)
     email: Mapped[str] = mapped_column(String)
 
-    event: Mapped['Event'] = relationship(back_populates='tickets')
+    event: Mapped['Event'] = relationship(
+        back_populates='tickets',
+        lazy='selectin'
+    )

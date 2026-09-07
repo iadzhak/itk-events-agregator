@@ -28,4 +28,7 @@ class Event(CommonMixin, Base):
         back_populates='events',
         lazy='selectin'
     )
-    tickets: Mapped[list['Ticket']] = relationship(back_populates='event')
+    tickets: Mapped[list['Ticket']] = relationship(
+        back_populates='event',
+        lazy='selectin'
+    )
