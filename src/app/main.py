@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import main_router
-from app.core import EventBaseException, ExternalApiError, settings
+from app.core import BaseError, ExternalApiError, settings
 from app.lifespan import lifespan
 
 app = FastAPI(
@@ -28,12 +28,6 @@ async def handle_external_api_error(request: Request, exc: ExternalApiError):
     )
 
 
-@app.exception_handler(EventBaseException)
-async def handle_bad_request_exceptions(
-        request: Request,
-        exc: EventBaseException
-):
-    raise HTTPException(
-        status_code=status.HTTP_400_BAD_REQUEST,
-        detail=str(exc)
-    )
+@app.exception_handler(BaseError)
+async def handle_errors(request: Request, exc: BaseError) -> None:
+    raise HTTPException(status_code=exc.status_code, detail=exc.detail)

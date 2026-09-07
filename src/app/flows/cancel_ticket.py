@@ -2,7 +2,7 @@ import datetime as dt
 from uuid import UUID
 
 from app.clients import EventsProviderClient
-from app.core import EventPassed, ExternalApiError, TicketNotFound
+from app.core import BadRequest, ExternalApiError, NotFound
 from app.repository import TicketRepository
 from app.schemas import CancelTicket
 
@@ -20,14 +20,14 @@ class CancelTicketUseCase:
         # check registration exist
         ticket = await self._tickets.get_by_id(ticket_id)
         if ticket is None:
-            raise TicketNotFound(
+            raise NotFound(
                 f'Билет "{ticket_id}" не найден'
             )
 
         # check event has not passed
         now = dt.datetime.now(tz=dt.UTC)
         if now >= ticket.event.event_time:
-            raise EventPassed(
+            raise BadRequest(
                 f'Мероприятие "{ticket.event.name}" уже прошло'
             )
         # check response

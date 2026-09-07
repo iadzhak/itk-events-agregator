@@ -3,8 +3,7 @@ import re
 from uuid import UUID
 
 from app.clients import BaseProviderClient
-from app.core import EventRegistrationDeadline, EventUnavailableSeat
-from app.core.exceptions import EventNotFound, EventUnexpectedStatus
+from app.core import BadRequest, NotFound
 from app.repository import EventRepository, TicketRepository
 from app.schemas import Ticket
 from app.types import EventStatus
@@ -33,13 +32,13 @@ class CreateTicketUseCase:
 
         # check event exist
         if event is None:
-            raise EventNotFound(
+            raise NotFound(
                 f'Мероприятие с id: {event_id!s} не найдено'
             )
 
         # check event status is published
         if event.status != EventStatus.PUBLISHED:
-            raise EventUnexpectedStatus(
+            raise BadRequest(
                 f'Регистрация возможно только на мероприятия со статусом '
                 f'"published". Мероприятия "{event.name}" статус '
                 f'"{event.status}"'
@@ -48,7 +47,7 @@ class CreateTicketUseCase:
         # check event registration deadline
         now = dt.datetime.now(tz=dt.UTC)
         if now >= event.registration_deadline:
-            raise EventRegistrationDeadline(
+            raise BadRequest(
                 f'Регистрация на мероприятие {event.name} уже завершилась'
             )
 
@@ -58,13 +57,13 @@ class CreateTicketUseCase:
         # check seat is free (internal db)
         seats_in_db = [t.seat for t in event.tickets]
         if seat in seats_in_db:
-            raise EventUnexpectedStatus(f'Место {seat} уже занято.')
+            raise BadRequest(f'Место {seat} уже занято.')
 
         # check seat is free (external api)
         seats = await self._client.seats(event_id)
         if seat not in seats:
             seats_str = ','.join(seats)
-            raise EventUnavailableSeat(
+            raise BadRequest(
                 f'Место {seat} уже занято. Доступные места: {seats_str}'
             )
 
@@ -103,11 +102,11 @@ class CreateTicketUseCase:
         p = int(p)
         if s not in available:
             all_s = ','.join(available.keys())
-            raise EventUnavailableSeat(
+            raise BadRequest(
                 f'Секции {s} нет среди доступных: {all_s}'
             )
         if p < available[s][0] or p > available[s][1]:
-            raise EventUnavailableSeat(
+            raise BadRequest(
                 f'Места {p} нет среди возможных '
                 f'{available[s][0]}-{available[s][1]} для секции {s}'
             )

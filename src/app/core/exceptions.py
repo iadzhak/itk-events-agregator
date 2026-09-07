@@ -1,30 +1,21 @@
+from fastapi import status
+
+
+class BaseError(Exception):
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    detail = 'Внутренняя ошибка сервера'
+
+    def __init__(self, detail: str | None = None):
+        self.detail = detail or self.detail
+
+
+class NotFound(BaseError):
+    status_code = status.HTTP_404_NOT_FOUND
+
+
+class BadRequest(BaseError):
+    status_code = status.HTTP_400_BAD_REQUEST
+
+
 class ExternalApiError(Exception):
     """Ошибка внешнего API клиента"""
-
-
-class EventBaseException(Exception):
-    pass
-
-
-class EventNotFound(EventBaseException):
-    """Мероприятие не найдено"""
-
-
-class EventUnexpectedStatus(EventBaseException):
-    """Несоответствующий статус мероприятия"""
-
-
-class EventRegistrationDeadline(EventBaseException):
-    """Регистрация на мероприятие уже завершилась"""
-
-
-class EventUnavailableSeat(EventBaseException):
-    """Недопустимое место"""
-
-
-class EventPassed(Exception):
-    """Мероприятие уже завершилось"""
-
-
-class TicketNotFound(Exception):
-    """Билета нет в базе"""

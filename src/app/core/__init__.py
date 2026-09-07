@@ -1,14 +1,10 @@
 __all__ = [
+    'BadRequest',
     'Base',
+    'BaseError',
     'CommonMixin',
-    'EventBaseException',
-    'EventNotFound',
-    'EventPassed',
-    'EventRegistrationDeadline',
-    'EventUnavailableSeat',
-    'EventUnexpectedStatus',
     'ExternalApiError',
-    'TicketNotFound',
+    'NotFound',
     'get_logger',
     'get_session',
     'settings'
@@ -17,13 +13,9 @@ __all__ = [
 from app.core.conf import settings
 from app.core.db import Base, CommonMixin, get_session
 from app.core.exceptions import (
-    EventBaseException,
-    EventNotFound,
-    EventPassed,
-    EventRegistrationDeadline,
-    EventUnavailableSeat,
-    EventUnexpectedStatus,
+    BadRequest,
+    BaseError,
     ExternalApiError,
-    TicketNotFound,
+    NotFound,
 )
 from app.core.logging import get_logger
