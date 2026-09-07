@@ -1,10 +1,10 @@
 __all__ = [
-    'BadRequest',
+    'BadRequestError',
     'Base',
     'BaseError',
     'CommonMixin',
     'ExternalApiError',
-    'NotFound',
+    'NotFoundError',
     'get_logger',
     'get_session',
     'settings'
@@ -13,9 +13,9 @@ __all__ = [
 from app.core.conf import settings
 from app.core.db import Base, CommonMixin, get_session
 from app.core.exceptions import (
-    BadRequest,
+    BadRequestError,
     BaseError,
     ExternalApiError,
-    NotFound,
+    NotFoundError,
 )
 from app.core.logging import get_logger

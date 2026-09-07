@@ -5,7 +5,7 @@ from fastapi import Request
 from pydantic import HttpUrl
 
 from app.clients import BaseProviderClient
-from app.core import BadRequest, NotFound
+from app.core import BadRequestError, NotFoundError
 from app.repository import EventRepository
 from app.schemas import (
     EventFilter,
@@ -40,7 +40,7 @@ class EventService:
     async def get(self, event_id: UUID) -> EventOut:
         event = await self._repo.get_by_id(event_id)
         if event is None:
-            raise NotFound(f'Мероприятие id "{event_id!s}" не найдено')
+            raise NotFoundError(f'Мероприятие id "{event_id!s}" не найдено')
         return EventOut.model_validate(event)
 
     async def get_paginated(
@@ -78,7 +78,7 @@ class EventService:
     async def get_available_seats(self, event_id: UUID) -> list[str]:
         event = await self.get(event_id)
         if event.status != EventStatus.PUBLISHED:
-            raise BadRequest(
+            raise BadRequestError(
                 f'Получить информацию о местах можно только у мероприятий со '
                 f'статусом "published". У мероприятия "{event.name}" '
                 f'статус "{event.status}"'

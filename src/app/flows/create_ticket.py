@@ -3,7 +3,7 @@ import re
 from uuid import UUID
 
 from app.clients import BaseProviderClient
-from app.core import BadRequest, NotFound
+from app.core import BadRequestError, NotFoundError
 from app.repository import EventRepository, TicketRepository
 from app.schemas import Ticket
 from app.types import EventStatus
@@ -32,13 +32,13 @@ class CreateTicketUseCase:
 
         # check event exist
         if event is None:
-            raise NotFound(
+            raise NotFoundError(
                 f'Мероприятие с id: {event_id!s} не найдено'
             )
 
         # check event status is published
         if event.status != EventStatus.PUBLISHED:
-            raise BadRequest(
+            raise BadRequestError(
                 f'Регистрация возможно только на мероприятия со статусом '
                 f'"published". Мероприятия "{event.name}" статус '
                 f'"{event.status}"'
@@ -47,7 +47,7 @@ class CreateTicketUseCase:
         # check event registration deadline
         now = dt.datetime.now(tz=dt.UTC)
         if now >= event.registration_deadline:
-            raise BadRequest(
+            raise BadRequestError(
                 f'Регистрация на мероприятие {event.name} уже завершилась'
             )
 
@@ -57,13 +57,13 @@ class CreateTicketUseCase:
         # check seat is free (internal db)
         seats_in_db = [t.seat for t in event.tickets]
         if seat in seats_in_db:
-            raise BadRequest(f'Место {seat} уже занято.')
+            raise BadRequestError(f'Место {seat} уже занято.')
 
         # check seat is free (external api)
         seats = await self._client.seats(event_id)
         if seat not in seats:
             seats_str = ','.join(seats)
-            raise BadRequest(
+            raise BadRequestError(
                 f'Место {seat} уже занято. Доступные места: {seats_str}'
             )
 
@@ -76,7 +76,7 @@ class CreateTicketUseCase:
             email
         )
         if ticket_id is None:
-            raise BadRequest(
+            raise BadRequestError(
                 'Не удалось получить ticket_id от провайдера'
             )
 
@@ -107,11 +107,11 @@ class CreateTicketUseCase:
         p = int(p)
         if s not in available:
             all_s = ','.join(available.keys())
-            raise BadRequest(
+            raise BadRequestError(
                 f'Секции {s} нет среди доступных: {all_s}'
             )
         if p < available[s][0] or p > available[s][1]:
-            raise BadRequest(
+            raise BadRequestError(
                 f'Места {p} нет среди возможных '
                 f'{available[s][0]}-{available[s][1]} для секции {s}'
             )

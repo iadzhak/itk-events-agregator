@@ -36,7 +36,7 @@ class EventsProviderClient(BaseProviderClient):
             response.raise_for_status()
             return response
         except HTTPError as e:
-            raise ExternalApiError(e)
+            raise ExternalApiError('Ошибка работы с внешним API') from e
 
     async def events(
             self,
