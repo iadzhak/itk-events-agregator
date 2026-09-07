@@ -17,7 +17,7 @@ from app.schemas import (
 router = APIRouter()
 
 
-@router.get('/', response_model=PaginatedResponse[EventOut])
+@router.get('', response_model=PaginatedResponse[EventOut])
 async def get_all_events(
         *,
         filters: Annotated[EventFilter, Depends()],
