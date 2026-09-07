@@ -20,3 +20,11 @@ class EventRegistrationDeadline(EventBaseException):
 
 class EventUnavailableSeat(EventBaseException):
     """Недопустимое место"""
+
+
+class EventPassed(Exception):
+    """Мероприятие уже завершилось"""
+
+
+class TicketNotFound(Exception):
+    """Билета нет в базе"""

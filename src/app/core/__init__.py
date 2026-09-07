@@ -9,7 +9,8 @@ __all__ = [
     'ExternalApiError',
     'get_logger',
     'get_session',
-    'settings'
+    'settings',
+    'TicketNotFound'
 ]
 
 from app.core.conf import settings
@@ -21,5 +22,7 @@ from app.core.exceptions import (
     EventUnavailableSeat,
     EventUnexpectedStatus,
     ExternalApiError,
+    TicketNotFound,
+    EventPassed
 )
 from app.core.logging import get_logger
