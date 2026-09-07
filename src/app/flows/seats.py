@@ -20,14 +20,15 @@ class AvailableSeatsUseCase:
         self._client = client
         self._cache = cache
 
-    async def _get_available_seats(self, event_id: UUID) -> tuple[str]:
-        if event_id not in self._cache:
-            result = await self._client.seats(event_id)
-            self._cache[event_id] = tuple(result)
-        return self._cache[event_id]
+    async def get_available_seats(self, event_id: UUID) -> list[str]:
+        seats = await self._client.seats(event_id)
+        self._cache[event_id] = tuple(seats)
+        return seats
 
     async def do(self, event_id: UUID) -> EventSeatsResponse:
-        seats = await self._get_available_seats(event_id)
+        if event_id not in self._cache:
+            await self.get_available_seats(event_id)
+        seats = self._cache[event_id]
         return EventSeatsResponse(
             event_id=event_id,
             available_seats=list(seats)
