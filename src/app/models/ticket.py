@@ -6,19 +6,14 @@ if TYPE_CHECKING:
 from uuid import UUID
 
 from sqlalchemy import UUID as UUID_SA
-from sqlalchemy import ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core import Base
 
 
 class Ticket(Base):
-    __table_args__ = (
-        UniqueConstraint('ticket_id', 'event_id', name='uq_event_tickets'),
-    )
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    ticket_id: Mapped[UUID] = mapped_column(UUID_SA, nullable=False)
+    id: Mapped[UUID] = mapped_column(UUID_SA, primary_key=True)
     seat: Mapped[str] = mapped_column(String, nullable=False)
     event_id: Mapped[UUID] = mapped_column(ForeignKey('event.id'))
     first_name: Mapped[str] = mapped_column(String)
