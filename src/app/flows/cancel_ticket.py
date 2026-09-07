@@ -18,7 +18,7 @@ class CancelTicketUseCase:
 
     async def do(self, ticket_id: UUID) -> CancelTicket:
         # check registration exist
-        ticket = await self._tickets.get_by_id(ticket_id)
+        ticket = await self._tickets.get_by_ticket_id(ticket_id)
         if ticket is None:
             raise NotFound(
                 f'Билет "{ticket_id}" не найден'
