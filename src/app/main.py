@@ -1,7 +1,7 @@
-from fastapi import FastAPI, HTTPException, Request, status
+from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.api import main_router
 from app.core import BaseError, ExternalApiError, settings
@@ -23,24 +23,30 @@ app.include_router(main_router)
 
 
 @app.exception_handler(ExternalApiError)
-async def handle_external_api_error(request: Request, exc: ExternalApiError):
-    raise HTTPException(
+async def handle_external_api_error(
+        request: Request,
+        exc: ExternalApiError
+) -> JSONResponse:
+    return JSONResponse(
         status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-        detail='Внешний сервис не доступен'
+        content={"detail": "Внешний сервис не доступен"}
     )
 
 
 @app.exception_handler(BaseError)
-async def handle_errors(request: Request, exc: BaseError) -> None:
-    raise HTTPException(status_code=exc.status_code, detail=exc.detail)
+async def handle_errors(request: Request, exc: BaseError) -> JSONResponse:
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail}
+    )
 
 
 @app.exception_handler(RequestValidationError)
 async def handle_validation_error(
         request: Request,
         exc: RequestValidationError
-) -> None:
-    raise HTTPException(
+) -> JSONResponse:
+    return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
-        detail=exc.errors()
+        content={"detail": exc.errors()}
     )
