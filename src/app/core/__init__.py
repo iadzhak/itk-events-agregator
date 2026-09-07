@@ -3,6 +3,8 @@ __all__ = [
     'CommonMixin',
     'EventBaseException',
     'EventNotFound',
+    'EventRegistrationDeadline',
+    'EventUnavailableSeat',
     'EventUnexpectedStatus',
     'ExternalApiError',
     'get_logger',
@@ -15,6 +17,8 @@ from app.core.db import Base, CommonMixin, get_session
 from app.core.exceptions import (
     EventBaseException,
     EventNotFound,
+    EventRegistrationDeadline,
+    EventUnavailableSeat,
     EventUnexpectedStatus,
     ExternalApiError,
 )

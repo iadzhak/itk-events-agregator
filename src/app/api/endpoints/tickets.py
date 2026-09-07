@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.dependencies import CreateTicketUseCaseDep, SessionDep
+from app.dependencies import CreateTicketUseCaseDep
 from app.schemas import UserBuyTicket
 
 router = APIRouter()
@@ -11,7 +11,7 @@ async def register_for_event(
         form: UserBuyTicket,
         usecase: CreateTicketUseCaseDep,
 ):
-    return await usecase.do(form.event_id, form.first_name, form.seat)
+    return await usecase.do(**form.model_dump())
 
 
 @router.delete('/{ticket_id}')

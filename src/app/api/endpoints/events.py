@@ -3,12 +3,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Request
 
-from app.api import validators
 from app.dependencies import (
-    AvailableSeatsUseCaseDep,
     EventServiceDep,
-    EventsRepoDep,
-    SessionDep,
 )
 from app.schemas import (
     EventFilter,

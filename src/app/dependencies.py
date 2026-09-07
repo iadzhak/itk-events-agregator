@@ -6,10 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.clients import BaseProviderClient, EventsProviderClient
 from app.core import get_session, settings
-from app.flows import (
-    AvailableSeatsUseCase,
-    CreateTicketUseCase
-)
+from app.flows import AvailableSeatsUseCase, CreateTicketUseCase
 from app.models import Event, Place, SyncMeta
 from app.repository import (
     EventRepository,
