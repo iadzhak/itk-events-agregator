@@ -6,7 +6,7 @@ if TYPE_CHECKING:
 from uuid import UUID
 
 from sqlalchemy import UUID as UUID_sa
-from sqlalchemy import Boolean, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core import Base
