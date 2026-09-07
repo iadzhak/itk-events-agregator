@@ -1,4 +1,6 @@
 from fastapi import FastAPI, HTTPException, Request, status
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import main_router
@@ -31,3 +33,14 @@ async def handle_external_api_error(request: Request, exc: ExternalApiError):
 @app.exception_handler(BaseError)
 async def handle_errors(request: Request, exc: BaseError) -> None:
     raise HTTPException(status_code=exc.status_code, detail=exc.detail)
+
+
+@app.exception_handler(RequestValidationError)
+async def handle_validation_error(
+        request: Request,
+        exc: RequestValidationError
+) -> None:
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail=exc.errors()
+    )
