@@ -39,7 +39,8 @@ class TestEventsProviderClient:
     ):
         client = EventsProviderClient(
             base_url=self.BASE_URL,
-            api_key=self.API_KEY
+            api_key=self.API_KEY,
+            retries=1
         )
         mock_response = MagicMock()
         mock_response.json.return_value = response
@@ -49,7 +50,8 @@ class TestEventsProviderClient:
     def make_client_with_raises(self, method):
         client = EventsProviderClient(
             base_url=self.BASE_URL,
-            api_key=self.API_KEY
+            api_key=self.API_KEY,
+            retries=1
         )
         setattr(
             client._client,
