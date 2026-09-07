@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .place import Place
+    from .ticket import Ticket
 
 import datetime as dt
 
@@ -27,3 +28,4 @@ class Event(CommonMixin, Base):
         back_populates='events',
         lazy='selectin'
     )
+    tickets: Mapped[list['Ticket']] = relationship(back_populates='event')
