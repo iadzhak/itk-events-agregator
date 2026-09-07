@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.clients import BaseProviderClient, EventsProviderClient
 from app.core import get_session, settings
-from app.flows import AvailableSeatsUseCase, CreateTicketUseCase
+from app.flows import CreateTicketUseCase
 from app.models import Event, Place, SyncMeta, Ticket
 from app.repository import (
     EventRepository,
@@ -93,19 +93,6 @@ def get_events_service(
 
 
 EventServiceDep = Annotated[EventService, Depends(get_events_service)]
-
-
-def get_available_seats_use_case(
-        client: EventsProviderClientDep,
-        cache: SeatsCacheDep
-) -> AvailableSeatsUseCase:
-    return AvailableSeatsUseCase(client, cache)
-
-
-AvailableSeatsUseCaseDep = Annotated[
-    AvailableSeatsUseCase,
-    Depends(get_available_seats_use_case)
-]
 
 
 def get_create_ticket_use_case(
