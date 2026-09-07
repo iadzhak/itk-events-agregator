@@ -1,5 +1,3 @@
-
-
 from app.models import Ticket
 from app.repository.base import BaseRepository
 

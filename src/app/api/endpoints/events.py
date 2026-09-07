@@ -19,11 +19,11 @@ router = APIRouter()
 
 @router.get('', response_model=PaginatedResponse[EventOut])
 async def get_all_events(
-        *,
-        filters: Annotated[EventFilter, Depends()],
-        pagination: Annotated[Pagination, Depends()],
-        event_service: EventServiceDep,
-        request: Request
+    *,
+    filters: Annotated[EventFilter, Depends()],
+    pagination: Annotated[Pagination, Depends()],
+    event_service: EventServiceDep,
+    request: Request,
 ):
     return await event_service.get_paginated(
         request=request,
@@ -34,15 +34,15 @@ async def get_all_events(
 
 @router.get('/{event_id}', response_model=EventOut)
 async def get_event_details(
-        event_id: UUID,
-        event_service: EventServiceDep,
+    event_id: UUID,
+    event_service: EventServiceDep,
 ):
     return await event_service.get(event_id)
 
 
 @router.get('/{event_id}/seats', response_model=EventSeatsResponse)
 async def get_available_seats(
-        event_id: UUID,
-        event_service: EventServiceDep,
+    event_id: UUID,
+    event_service: EventServiceDep,
 ):
     return await event_service.get_available_seats_cached(event_id)

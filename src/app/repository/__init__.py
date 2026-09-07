@@ -3,7 +3,7 @@ __all__ = [
     'EventRepository',
     'PlaceRepository',
     'SyncRepository',
-    'TicketRepository'
+    'TicketRepository',
 ]
 
 from app.repository.base import BaseRepository

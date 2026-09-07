@@ -28,10 +28,10 @@ def get_seats_cache():
 
 class EventService:
     def __init__(
-            self,
-            client: BaseProviderClient,
-            repo: EventRepository,
-            cache: TTLCache
+        self,
+        client: BaseProviderClient,
+        repo: EventRepository,
+        cache: TTLCache,
     ):
         self._client = client
         self._repo = repo
@@ -44,17 +44,15 @@ class EventService:
         return EventOut.model_validate(event)
 
     async def get_paginated(
-            self,
-            filters: EventFilter,
-            pagination: Pagination,
-            request: Request,
+        self,
+        filters: EventFilter,
+        pagination: Pagination,
+        request: Request,
     ) -> PaginatedResponse[EventOut]:
         limit = pagination.page_size
         offset = (pagination.page - 1) * limit
         items, total = await self._repo.get_paginated(
-            filters=filters,
-            limit=limit,
-            offset=offset
+            filters=filters, limit=limit, offset=offset
         )
 
         next_url = None
@@ -72,7 +70,7 @@ class EventService:
             count=total,
             next=HttpUrl(next_url) if next_url else None,
             previous=HttpUrl(previous_url) if previous_url else None,
-            results=[EventOut.model_validate(i) for i in items]
+            results=[EventOut.model_validate(i) for i in items],
         )
 
     async def get_available_seats(self, event_id: UUID) -> list[str]:
@@ -89,13 +87,11 @@ class EventService:
         return seats
 
     async def get_available_seats_cached(
-            self,
-            event_id: UUID
+        self, event_id: UUID
     ) -> EventSeatsResponse:
         if event_id not in self._cache:
             await self.get_available_seats(event_id)
         seats = self._cache[event_id]
         return EventSeatsResponse(
-            event_id=event_id,
-            available_seats=list(seats)
+            event_id=event_id, available_seats=list(seats)
         )

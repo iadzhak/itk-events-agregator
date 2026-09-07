@@ -9,9 +9,7 @@ from app.schemas import CancelTicket
 
 class CancelTicketUseCase:
     def __init__(
-            self,
-            client: EventsProviderClient,
-            tickets: TicketRepository
+        self, client: EventsProviderClient, tickets: TicketRepository
     ):
         self._client = client
         self._tickets = tickets
@@ -20,9 +18,7 @@ class CancelTicketUseCase:
         # check registration exist
         ticket = await self._tickets.get_by_id(ticket_id)
         if ticket is None:
-            raise NotFoundError(
-                f'Билет "{ticket_id}" не найден'
-            )
+            raise NotFoundError(f'Билет "{ticket_id}" не найден')
 
         # check event has not passed
         now = dt.datetime.now(tz=dt.UTC)

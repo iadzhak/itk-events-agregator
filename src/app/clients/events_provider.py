@@ -17,19 +17,16 @@ class EventsProviderClient(BaseProviderClient):
     CANCEL_URL = '/api/events/{event_id}/unregister/'
 
     def __init__(self, base_url: str, api_key: str, retries: int) -> None:
-        headers = {
-            'x-api-key': api_key
-        }
+        headers = {'x-api-key': api_key}
         self._client = AsyncClient(
             base_url=base_url,
             headers=headers,
             follow_redirects=True,
-            transport=AsyncHTTPTransport(retries=retries)
+            transport=AsyncHTTPTransport(retries=retries),
         )
 
     async def _handle_response(
-            self,
-            request: Coroutine[Any, Any, Response]
+        self, request: Coroutine[Any, Any, Response]
     ) -> Response:
         try:
             response = await request
@@ -39,9 +36,7 @@ class EventsProviderClient(BaseProviderClient):
             raise ExternalApiError('Ошибка работы с внешним API') from e
 
     async def events(
-            self,
-            changed_at: dt.datetime,
-            cursor: str | None = None
+        self, changed_at: dt.datetime, cursor: str | None = None
     ) -> EventsExternal:
         params = {'changed_at': changed_at.strftime('%Y-%m-%d')}
         if cursor is not None:
@@ -59,19 +54,19 @@ class EventsProviderClient(BaseProviderClient):
         return data.get('seats', [])
 
     async def register(
-            self,
-            event_id: UUID,
-            first_name: str,
-            last_name: str,
-            seat: str,
-            email: str
+        self,
+        event_id: UUID,
+        first_name: str,
+        last_name: str,
+        seat: str,
+        email: str,
     ) -> UUID:
         url = self.REGISTER_URL.format(event_id=str(event_id))
         body = {
             'first_name': first_name,
             'last_name': last_name,
             'seat': seat,
-            'email': email
+            'email': email,
         }
         request = self._client.post(url, json=body)
         response = await self._handle_response(request)
@@ -84,13 +79,9 @@ class EventsProviderClient(BaseProviderClient):
         return UUID(ticket_id)
 
     async def cancel(self, event_id: UUID, ticket_id: UUID) -> bool:
-        body = {
-            'ticket_id': str(ticket_id)
-        }
+        body = {'ticket_id': str(ticket_id)}
         request = self._client.request(
-            'DELETE',
-            self.CANCEL_URL.format(event_id=str(event_id)),
-            json=body
+            'DELETE', self.CANCEL_URL.format(event_id=str(event_id)), json=body
         )
         response = await self._handle_response(request)
         data = response.json()

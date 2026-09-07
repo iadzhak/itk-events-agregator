@@ -7,7 +7,7 @@ __all__ = [
     'NotFoundError',
     'get_logger',
     'get_session',
-    'settings'
+    'settings',
 ]
 
 from app.core.conf import settings

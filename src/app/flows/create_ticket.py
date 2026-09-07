@@ -11,30 +11,28 @@ from app.types import EventStatus
 
 class CreateTicketUseCase:
     def __init__(
-            self,
-            client: BaseProviderClient,
-            events: EventRepository,
-            tickets: TicketRepository
+        self,
+        client: BaseProviderClient,
+        events: EventRepository,
+        tickets: TicketRepository,
     ) -> None:
         self._client = client
         self._events = events
         self._tickets = tickets
 
     async def do(
-            self,
-            event_id: UUID,
-            first_name: str,
-            last_name: str,
-            email: str,
-            seat: str,
+        self,
+        event_id: UUID,
+        first_name: str,
+        last_name: str,
+        email: str,
+        seat: str,
     ) -> Ticket:
         event = await self._events.get_by_id(event_id)
 
         # check event exist
         if event is None:
-            raise NotFoundError(
-                f'Мероприятие с id: {event_id!s} не найдено'
-            )
+            raise NotFoundError(f'Мероприятие с id: {event_id!s} не найдено')
 
         # check event status is published
         if event.status != EventStatus.PUBLISHED:
@@ -69,11 +67,7 @@ class CreateTicketUseCase:
 
         # make request
         ticket_id = await self._client.register(
-            event_id,
-            first_name,
-            last_name,
-            seat,
-            email
+            event_id, first_name, last_name, seat, email
         )
         if ticket_id is None:
             raise BadRequestError(
@@ -87,7 +81,7 @@ class CreateTicketUseCase:
             'first_name': first_name,
             'last_name': last_name,
             'email': email,
-            'seat': seat
+            'seat': seat,
         }
         await self._tickets.create(data)
 
@@ -107,9 +101,7 @@ class CreateTicketUseCase:
         p = int(p)
         if s not in available:
             all_s = ','.join(available.keys())
-            raise BadRequestError(
-                f'Секции {s} нет среди доступных: {all_s}'
-            )
+            raise BadRequestError(f'Секции {s} нет среди доступных: {all_s}')
         if p < available[s][0] or p > available[s][1]:
             raise BadRequestError(
                 f'Места {p} нет среди возможных '

@@ -6,11 +6,8 @@ from app.schemas import EventsExternal
 
 
 class BaseProviderClient(Protocol):
-
     async def events(
-            self,
-            changed_at: dt.datetime,
-            cursor: str | None = None
+        self, changed_at: dt.datetime, cursor: str | None = None
     ) -> EventsExternal:
         pass
 
@@ -18,12 +15,12 @@ class BaseProviderClient(Protocol):
         pass
 
     async def register(
-            self,
-            event_id: UUID,
-            first_name: str,
-            last_name: str,
-            seat: str,
-            email: str
+        self,
+        event_id: UUID,
+        first_name: str,
+        last_name: str,
+        seat: str,
+        email: str,
     ) -> UUID:
         pass
 

@@ -12,9 +12,7 @@ BasePaginator = AsyncIterator[EventDB]
 
 class EventsPaginator(BasePaginator):
     def __init__(
-            self,
-            client: BaseProviderClient,
-            changed_at: dt.datetime
+        self, client: BaseProviderClient, changed_at: dt.datetime
     ) -> None:
         self._client = client
         self._changed_at = changed_at
@@ -28,8 +26,7 @@ class EventsPaginator(BasePaginator):
     async def __anext__(self) -> EventDB:
         if not self._stop and not self._buffer:
             response = await self._client.events(
-                changed_at=self._changed_at,
-                cursor=self._cursor
+                changed_at=self._changed_at, cursor=self._cursor
             )
             self._buffer.extend(response.results)
             if response.next:

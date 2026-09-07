@@ -26,10 +26,8 @@ class Event(CommonMixin, Base):
     place_id: Mapped[UUID] = mapped_column(ForeignKey('place.id'))
 
     place: Mapped['Place'] = relationship(
-        back_populates='events',
-        lazy='selectin'
+        back_populates='events', lazy='selectin'
     )
     tickets: Mapped[list['Ticket']] = relationship(
-        back_populates='event',
-        lazy='selectin'
+        back_populates='event', lazy='selectin'
     )

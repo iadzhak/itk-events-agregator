@@ -37,11 +37,10 @@ class EventsExternal(BaseModel):
 
 class EventFilter(BaseModel):
     date_from: dt.date | None = Field(
-        None,
-        description='События после этой даты (YYYY-MM-DD)'
+        None, description='События после этой даты (YYYY-MM-DD)'
     )
 
 
 class EventSeatsResponse(BaseModel):
     event_id: UUID
-    available_seats: list[str] = Field(examples=[["A1", "A3", "A4"]])
+    available_seats: list[str] = Field(examples=[['A1', 'A3', 'A4']])

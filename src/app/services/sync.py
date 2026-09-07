@@ -17,13 +17,12 @@ class SyncService:
     DEFAULT_ID = 1
 
     def __init__(
-            self,
-            client: BaseProviderClient,
-            paginator_class: type[BasePaginator],
-            sync_repo: BaseRepository[SyncMeta],
-            events_repo: BaseRepository[Event],
-            place_repo: BaseRepository[Place]
-
+        self,
+        client: BaseProviderClient,
+        paginator_class: type[BasePaginator],
+        sync_repo: BaseRepository[SyncMeta],
+        events_repo: BaseRepository[Event],
+        place_repo: BaseRepository[Place],
     ) -> None:
         self._client = client
         self._paginator_class = paginator_class
@@ -63,9 +62,9 @@ class SyncService:
         return meta.last_sync_time
 
     async def _proceed_db_obj(
-            self,
-            data: dict,
-            repo: BaseRepository[Event | Place],
+        self,
+        data: dict,
+        repo: BaseRepository[Event | Place],
     ):
         db_obj = await repo.get_by_id(_id=data['id'])
         if db_obj is None:

@@ -21,7 +21,7 @@ async def get_events_provider_client():
     client = EventsProviderClient(
         base_url=settings.provider_base_url,
         api_key=settings.provider_api_key,
-        retries=settings.provider_retries
+        retries=settings.provider_retries,
     )
     yield client
     await client.aclose()
@@ -52,28 +52,26 @@ SyncRepoDep = Annotated[SyncRepository, Depends(get_sync_repository)]
 TicketRepoDep = Annotated[TicketRepository, Depends(get_ticket_repository)]
 
 EventsProviderClientDep = Annotated[
-    EventsProviderClient,
-    Depends(get_events_provider_client)
+    EventsProviderClient, Depends(get_events_provider_client)
 ]
 EventsPaginatorClassDep = Annotated[
-    type[EventsPaginator],
-    Depends(get_events_paginator_class)
+    type[EventsPaginator], Depends(get_events_paginator_class)
 ]
 
 
 def get_sync_service(
-        client: EventsProviderClientDep,
-        paginator_class: EventsPaginatorClassDep,
-        sync_repo: SyncRepoDep,
-        events_repo: EventsRepoDep,
-        place_repo: PlaceRepoDep
+    client: EventsProviderClientDep,
+    paginator_class: EventsPaginatorClassDep,
+    sync_repo: SyncRepoDep,
+    events_repo: EventsRepoDep,
+    place_repo: PlaceRepoDep,
 ):
     return SyncService(
         client=client,
         paginator_class=paginator_class,
         sync_repo=sync_repo,
         events_repo=events_repo,
-        place_repo=place_repo
+        place_repo=place_repo,
     )
 
 
@@ -83,40 +81,33 @@ SeatsCacheDep = Annotated[TTLCache, Depends(get_seats_cache)]
 
 
 def get_events_service(
-        client: EventsProviderClientDep,
-        repo: EventsRepoDep,
-        cache: SeatsCacheDep
+    client: EventsProviderClientDep, repo: EventsRepoDep, cache: SeatsCacheDep
 ):
-    return EventService(
-        client=client,
-        repo=repo,
-        cache=cache
-    )
+    return EventService(client=client, repo=repo, cache=cache)
 
 
 EventServiceDep = Annotated[EventService, Depends(get_events_service)]
 
 
 def get_create_ticket_use_case(
-        client: EventsProviderClientDep,
-        events: EventsRepoDep,
-        tickets: TicketRepoDep
+    client: EventsProviderClientDep,
+    events: EventsRepoDep,
+    tickets: TicketRepoDep,
 ) -> CreateTicketUseCase:
     return CreateTicketUseCase(client, events, tickets)
 
 
 CreateTicketUseCaseDep = Annotated[
-    CreateTicketUseCase, Depends(get_create_ticket_use_case)]
+    CreateTicketUseCase, Depends(get_create_ticket_use_case)
+]
 
 
 def get_cancel_ticket_use_case(
-        client: EventsProviderClientDep,
-        tickets: TicketRepoDep
+    client: EventsProviderClientDep, tickets: TicketRepoDep
 ) -> CancelTicketUseCase:
     return CancelTicketUseCase(client, tickets)
 
 
 CancelTicketUseCaseDep = Annotated[
-    CancelTicketUseCase,
-    Depends(get_cancel_ticket_use_case)
+    CancelTicketUseCase, Depends(get_cancel_ticket_use_case)
 ]

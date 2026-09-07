@@ -1,9 +1,4 @@
-__all__ = [
-    'events_router',
-    'health_router',
-    'sync_router',
-    'tickets_router'
-]
+__all__ = ['events_router', 'health_router', 'sync_router', 'tickets_router']
 
 from app.api.endpoints.events import router as events_router
 from app.api.endpoints.health import router as health_router

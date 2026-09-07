@@ -20,7 +20,10 @@ class BaseRepository[T]:
             db_obj = await self.get_by_id(data['id'])
         return db_obj
 
-    async def get_by_id(self, _id: int | UUID, ) -> T | None:
+    async def get_by_id(
+        self,
+        _id: int | UUID,
+    ) -> T | None:
         stmt = select(self.model).where(self.model.id == _id)
         result = await self.session.execute(stmt)
         return result.scalars().first()

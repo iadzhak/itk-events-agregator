@@ -6,8 +6,6 @@ router = APIRouter()
 
 
 @router.post('/trigger')
-async def trigger_sync(
-        background_tasks: BackgroundTasks
-):
+async def trigger_sync(background_tasks: BackgroundTasks):
     background_tasks.add_task(sync_meta_once)
     return {'status': 'ok'}

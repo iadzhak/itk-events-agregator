@@ -9,7 +9,7 @@ __all__ = [
     'Pagination',
     'PlaceDB',
     'Ticket',
-    'UserBuyTicket'
+    'UserBuyTicket',
 ]
 
 from app.schemas.event import (
