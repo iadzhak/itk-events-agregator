@@ -7,7 +7,7 @@ from uuid import UUID
 
 from sqlalchemy import UUID as UUID_sa
 from sqlalchemy import Boolean, ForeignKey, Integer, String, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core import Base
 
@@ -19,10 +19,11 @@ class Ticket(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     ticket_id: Mapped[UUID] = mapped_column(UUID_sa)
+    seat: Mapped[str] = mapped_column(String, nullable=False)
     event_id: Mapped[UUID] = mapped_column(ForeignKey('event.id'))
     sold: Mapped[bool] = mapped_column(Boolean)
     first_name: Mapped[str | None] = mapped_column(String, nullable=True)
     last_name: Mapped[str | None] = mapped_column(String, nullable=True)
     email: Mapped[str | None] = mapped_column(String, nullable=True)
 
-    event: Mapped['Event'] = mapped_column(back_populates='tickets')
+    event: Mapped['Event'] = relationship(back_populates='tickets')
