@@ -16,3 +16,7 @@ class UserBuyTicket(User):
 
 class Ticket(BaseModel):
     ticket_id: UUID
+
+
+class CancelTicket(BaseModel):
+    success: bool = True
