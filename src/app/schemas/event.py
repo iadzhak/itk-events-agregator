@@ -40,3 +40,8 @@ class EventFilter(BaseModel):
         None,
         description='События после этой даты (YYYY-MM-DD)'
     )
+
+
+class EventSeatsResponse(BaseModel):
+    event_id: UUID
+    available_seats: list[str] = Field(examples=[["A1", "A3", "A4"]])
