@@ -49,7 +49,7 @@ class SyncService:
         await session.commit()
         logger.info(f'Запущена фоновая синхронизация от {now!s}')
         try:
-            last_event = await self._proceed_events(meta, session)
+            last_event = await self._proceed_events(meta)
             meta.sync_status = SyncStatus.SUCCESS
             if last_event:
                 meta.last_changed_at = last_event.changed_at
@@ -65,7 +65,6 @@ class SyncService:
             self,
             data: dict,
             repo: BaseRepository[Event | Place],
-            session: AsyncSession
     ):
         db_obj = await repo.get_by_id(_id=data['id'])
         if db_obj is None:
@@ -73,7 +72,7 @@ class SyncService:
         if data['changed_at'] != db_obj.changed_at:
             await repo.update(db_obj=db_obj, data=data)
 
-    async def _proceed_events(self, meta: SyncMeta, session: AsyncSession):
+    async def _proceed_events(self, meta: SyncMeta):
         last_event = None
         paginator = self._paginator_class(self._client, meta.last_changed_at)
 
@@ -82,7 +81,6 @@ class SyncService:
             await self._proceed_db_obj(
                 data=event.place.model_dump(),
                 repo=self._place_repo,
-                session=session
             )
             # sync events
             event_data = event.model_dump(exclude={'place'})
@@ -90,7 +88,6 @@ class SyncService:
             await self._proceed_db_obj(
                 data=event_data,
                 repo=self._events_repo,
-                session=session
             )
             last_event = event
 
