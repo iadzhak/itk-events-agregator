@@ -32,3 +32,8 @@ class BaseRepository[T]:
         self.session.add(db_obj)
         await self.session.commit()
         return db_obj
+
+    async def delete(self, db_obj: T) -> T:
+        await self.session.delete(db_obj)
+        await self.session.commit()
+        return db_obj
