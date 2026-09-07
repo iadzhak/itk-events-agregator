@@ -14,8 +14,8 @@ class CreateTicketUseCase:
         self._events = events
 
     async def do(self, event_id: UUID, first_name: str, seat: str,
-                 session: AsyncSession):
-        event = await self._events.get_by_id(event_id, session)
+                 ):
+        event = await self._events.get_by_id(event_id)
         if event is None:
             raise EventNotFound(f'Мероприятие с id: {event_id!s} '
                                 f'не найдено')

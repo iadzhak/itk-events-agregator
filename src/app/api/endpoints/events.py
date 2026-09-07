@@ -47,10 +47,6 @@ async def get_event_details(
 @router.get('/{event_id}/seats', response_model=EventSeatsResponse)
 async def get_available_seats(
         event_id: UUID,
-        repo: EventsRepoDep,
-        session: SessionDep,
-        available_seats_use_case: AvailableSeatsUseCaseDep
+        event_service: EventServiceDep,
 ):
-    event = await validators.is_event_exist(event_id, repo, session)
-    validators.is_event_published(event)
-    return await available_seats_use_case.do(event_id)
+    return await event_service.get_available_seats_cached(event_id)

@@ -8,8 +8,7 @@ from app.clients import BaseProviderClient, EventsProviderClient
 from app.core import get_session, settings
 from app.flows import (
     AvailableSeatsUseCase,
-    CreateTicketUseCase,
-    get_seats_cache,
+    CreateTicketUseCase
 )
 from app.models import Event, Place, SyncMeta
 from app.repository import (
@@ -17,7 +16,7 @@ from app.repository import (
     PlaceRepository,
     SyncRepository,
 )
-from app.services import EventService, SyncService
+from app.services import EventService, SyncService, get_seats_cache
 from app.utils import EventsPaginator, get_events_paginator_class
 
 
@@ -75,13 +74,22 @@ def get_sync_service(
 
 SyncServiceDep = Annotated[SyncService, Depends(get_sync_service)]
 
+SeatsCacheDep = Annotated[TTLCache, Depends(get_seats_cache)]
 
-def get_events_service(repo: EventsRepoDep):
-    return EventService(repo)
+
+def get_events_service(
+        client: EventsProviderClientDep,
+        repo: EventsRepoDep,
+        cache: SeatsCacheDep
+):
+    return EventService(
+        client=client,
+        repo=repo,
+        cache=cache
+    )
 
 
 EventServiceDep = Annotated[EventService, Depends(get_events_service)]
-SeatsCacheDep = Annotated[TTLCache, Depends(get_seats_cache)]
 
 
 def get_available_seats_use_case(

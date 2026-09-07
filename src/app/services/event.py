@@ -5,7 +5,7 @@ from fastapi import Request
 from pydantic import HttpUrl
 
 from app.clients import BaseProviderClient
-from app.core import EventNotFound
+from app.core import EventNotFound, EventUnexpectedStatus
 from app.repository import EventRepository
 from app.schemas import (
     EventFilter,
@@ -14,6 +14,7 @@ from app.schemas import (
     PaginatedResponse,
     Pagination,
 )
+from app.types import EventStatus
 
 CACHE_MAX_SIZE = 30
 CACHE_TTL = 30
@@ -76,6 +77,13 @@ class EventService:
 
     async def get_available_seats(self, event_id: UUID) -> list[str]:
         event = await self.get(event_id)
+        if event.status != EventStatus.PUBLISHED:
+            raise EventUnexpectedStatus(
+                f'Получить информацию о местах можно только у мероприятий со '
+                f'статусом "published". У мероприятия "{event.name}" '
+                f'статус "{event.status}"'
+            )
+
         seats = await self._client.seats(event.id)
         self._cache[event_id] = tuple(seats)
         return seats

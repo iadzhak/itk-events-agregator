@@ -10,9 +10,8 @@ router = APIRouter()
 async def register_for_event(
         form: UserBuyTicket,
         usecase: CreateTicketUseCaseDep,
-        session: SessionDep
 ):
-    return await usecase.do(form.event_id, form.first_name, form.seat, session)
+    return await usecase.do(form.event_id, form.first_name, form.seat)
 
 
 @router.delete('/{ticket_id}')
