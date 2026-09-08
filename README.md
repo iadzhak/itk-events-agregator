@@ -42,8 +42,8 @@ FastAPI-приложение для агрегации событий от Event
 
 ```bash
 # 1. Клонируйте репозиторий
-git clone <repo-url>
-cd 01_events_agregator_api
+git clone https://github.com/iadzhak/itk-events-agregator
+cd itk-events-agregator
 
 # 2. Создайте .env файл
 cp .env.example .env
@@ -71,7 +71,7 @@ uv run uvicorn app.main:app --reload
 | `APP_DESCRIPTION` | Описание приложения | `Special aggregator for Events Provider API` |
 | `ORIGINS` | Список разрешённых CORS-источников (через запятую) | `*` |
 | `UPDATE_INTERVAL_H` | Интервал фоновой синхронизации в часах | `24` |
-| `PROVIDER_BASE_URL` | Базовый URL Events Provider API | `http://events-provider.dev-2.python-labs.ru` |
+| `PROVIDER_BASE_URL` | Базовый URL Events Provider API | `` |
 | `PROVIDER_API_KEY` | API-ключ для Events Provider API | `` |
 | `POSTGRES_HOST` | Хост PostgreSQL | `localhost` |
 | `POSTGRES_USERNAME` | Имя пользователя PostgreSQL | `postgres` |
@@ -251,9 +251,6 @@ ruff check --fix
 
 # Форматирование
 ruff format
-
-# Форматирование + проверка
-make lint
 ```
 
 ## 🚦 CI/CD
@@ -264,6 +261,7 @@ GitHub Actions автоматически запускает линтинг пе
 # .github/workflows/deploy.yml
 jobs:
   lint:    # Ruff check
+  test:    # Pytest unit tests
   build:   # Docker build (multi-platform)
   deploy:  # Deploy request
 ```
