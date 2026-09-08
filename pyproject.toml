@@ -30,15 +30,25 @@ dev = [
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
     "ruff>=0.16.6",
+    "testcontainers[postgres]>=4.15.0",
 ]
 
 
 [tool.ruff]
 line-length = 79
+target-version = "py312"
+exclude = ["alembic", "tests"]
 
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "N", "B", "C4"]
+
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "space"
 
 [tool.pytest.ini_options]
 addopts = ["-vv", "-x"]
 markers = [
-    "unit: Unit tests"
+    "unit: Unit tests",
+    "integ: Integration tests (use testcontainers for DB)",
 ]

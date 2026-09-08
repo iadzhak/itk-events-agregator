@@ -24,7 +24,7 @@ class TestEventsProviderClient:
 
     CHANGE_AT = dt.datetime(2000, 1, 1, tzinfo=dt.UTC)
 
-    def make_body(self):
+    def make_body(self) -> dict:
         return {
             'first_name': "John",
             'last_name': "Doe",
@@ -33,10 +33,10 @@ class TestEventsProviderClient:
         }
 
     def make_client(
-            self,
-            response,
-            method: Literal['get', 'post', 'request']
-    ):
+        self,
+        response: dict,
+        method: Literal['get', 'post', 'request']
+    ) -> EventsProviderClient:
         client = EventsProviderClient(
             base_url=self.BASE_URL,
             api_key=self.API_KEY,
@@ -47,7 +47,7 @@ class TestEventsProviderClient:
         setattr(client._client, method, AsyncMock(return_value=mock_response))
         return client
 
-    def make_client_with_raises(self, method):
+    def make_client_with_raises(self, method: str) -> EventsProviderClient:
         client = EventsProviderClient(
             base_url=self.BASE_URL,
             api_key=self.API_KEY,
@@ -60,7 +60,7 @@ class TestEventsProviderClient:
         )
         return client
 
-    def make_event(self):
+    def make_event(self) -> dict:
         return {
             "id": "550e8400-e29b-41d4-a716-446655440000",
             "name": "Конференция по Python",
@@ -82,22 +82,26 @@ class TestEventsProviderClient:
             "status_changed_at": "2026-01-04T22:28:35.325386+03:00"
         }
 
-    def make_seats(self):
-        seats = ["A1", "A3", "A4", "A5", "A10", "B1", "B2", "B15"]
-        return {'seats': seats}
+    def make_seats(self) -> dict:
+        return {'seats': ["A1", "A3", "A4", "A5", "A10", "B1", "B2", "B15"]}
 
-    def make_ticket(self):
-        return {'ticket_id': str(uuid4())}
+    def make_ticket(self, ticket_id: str | None = None) -> dict:
+        tid = ticket_id or str(uuid4())
+        return {'ticket_id': tid}
 
-    def make_events_response(self, results: list[dict] | None = None):
+    def make_events_response(
+        self, results: list[dict] | None = None
+    ) -> dict:
         return {
             "next": "http://...api/events?changed_at=2026-01-01&cursor=xyz",
             "previous": None,
             "results": results or []
         }
 
-    def make_cancel(self):
+    def make_cancel(self) -> dict:
         return {'success': True}
+
+    # -- events -----------------------------------------------------------
 
     @pytest.mark.parametrize(
         'mock_date, mock_cursor',
@@ -116,9 +120,7 @@ class TestEventsProviderClient:
             changed_at=dt.datetime.fromisoformat(mock_date),
             cursor=mock_cursor
         )
-        check_params = {
-            'changed_at': mock_date
-        }
+        check_params = {'changed_at': mock_date}
         if mock_cursor is not None:
             check_params['cursor'] = mock_cursor
         client._client.get.assert_awaited_once_with(
@@ -137,6 +139,16 @@ class TestEventsProviderClient:
         assert isinstance(response, EventsExternal)
         assert len(response.results) == 1
 
+    async def test_events_multiple_results(self):
+        events = [self.make_event(), self.make_event()]
+        client = self.make_client(
+            response=self.make_events_response(results=events),
+            method='get'
+        )
+        response = await client.events(changed_at=self.CHANGE_AT)
+        assert isinstance(response, EventsExternal)
+        assert len(response.results) == 2
+
     async def test_events_return_empty_results(self):
         client = self.make_client(
             response=self.make_events_response(),
@@ -152,6 +164,8 @@ class TestEventsProviderClient:
         with pytest.raises(ExternalApiError):
             await client.events(changed_at=self.CHANGE_AT)
 
+    # -- seats ------------------------------------------------------------
+
     async def test_seats_correct_url(self):
         mock_uuid = uuid4()
         client = self.make_client(
@@ -160,22 +174,31 @@ class TestEventsProviderClient:
         )
         await client.seats(event_id=mock_uuid)
         client._client.get.assert_awaited_once_with(
-            client.SEATS_URL.format(event_id=mock_uuid),
+            self.SEATS_URL.format(event_id=str(mock_uuid)),
         )
 
     async def test_seats_success(self):
         mock_seats = self.make_seats()
         client = self.make_client(
-            response=self.make_seats(),
+            response=mock_seats,
             method='get'
         )
         response = await client.seats(event_id=uuid4())
         assert isinstance(response, list)
         assert response == mock_seats['seats']
 
-    async def test_seats_return_empty_list(self):
+    async def test_seats_empty_list(self):
         client = self.make_client(
             response={},
+            method='get'
+        )
+        response = await client.seats(event_id=uuid4())
+        assert isinstance(response, list)
+        assert len(response) == 0
+
+    async def test_seats_empty_seats_field(self):
+        client = self.make_client(
+            response={'seats': []},
             method='get'
         )
         response = await client.seats(event_id=uuid4())
@@ -186,6 +209,8 @@ class TestEventsProviderClient:
         client = self.make_client_with_raises('get')
         with pytest.raises(ExternalApiError):
             await client.seats(event_id=uuid4())
+
+    # -- register ---------------------------------------------------------
 
     async def test_register_correct_url_and_body(self):
         mock_event_id = uuid4()
@@ -199,14 +224,14 @@ class TestEventsProviderClient:
             **mock_body
         )
         client._client.post.assert_awaited_once_with(
-            self.REGISTER_URL.format(event_id=mock_event_id),
+            self.REGISTER_URL.format(event_id=str(mock_event_id)),
             json=mock_body
         )
 
     async def test_register_return_uuid(self):
-        mock_ticket = self.make_ticket()
+        expected_id = uuid4()
         client = self.make_client(
-            response=mock_ticket,
+            response=self.make_ticket(str(expected_id)),
             method='post'
         )
         response = await client.register(
@@ -214,31 +239,44 @@ class TestEventsProviderClient:
             **self.make_body()
         )
         assert isinstance(response, UUID)
-        assert response == UUID(mock_ticket['ticket_id'])
+        assert response == expected_id
 
     async def test_register_http_error(self):
-        client = self.make_client_with_raises('get')
+        client = self.make_client_with_raises('post')
         with pytest.raises(ExternalApiError):
             await client.register(
                 event_id=uuid4(),
                 **self.make_body()
             )
 
+    async def test_register_missing_ticket_id(self):
+        client = self.make_client(
+            response={'error': 'something went wrong'},
+            method='post'
+        )
+        with pytest.raises(ExternalApiError) as exc_info:
+            await client.register(
+                event_id=uuid4(),
+                **self.make_body()
+            )
+
+    # -- cancel -----------------------------------------------------------
+
     async def test_cancel_correct_url_and_body(self):
+        mock_event_id = uuid4()
+        mock_ticket_id = uuid4()
         client = self.make_client(
             response=self.make_cancel(),
             method='request'
         )
-        mock_event_id = uuid4()
-        mock_ticket = self.make_ticket()
         await client.cancel(
             event_id=mock_event_id,
-            ticket_id=UUID(mock_ticket['ticket_id'])
+            ticket_id=mock_ticket_id
         )
         client._client.request.assert_awaited_once_with(
             'DELETE',
-            self.CANCEL_URL.format(event_id=mock_event_id),
-            json=mock_ticket
+            self.CANCEL_URL.format(event_id=str(mock_event_id)),
+            json={'ticket_id': str(mock_ticket_id)}
         )
 
     async def test_cancel_success(self):
@@ -251,6 +289,17 @@ class TestEventsProviderClient:
             ticket_id=uuid4()
         )
         assert response is True
+
+    async def test_cancel_returns_false(self):
+        client = self.make_client(
+            response={'success': False},
+            method='request'
+        )
+        response = await client.cancel(
+            event_id=uuid4(),
+            ticket_id=uuid4()
+        )
+        assert response is False
 
     async def test_cancel_http_error(self):
         client = self.make_client_with_raises('request')
