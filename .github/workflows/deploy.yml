@@ -16,8 +16,24 @@ jobs:
       - name: Run Ruff
         uses: astral-sh/ruff-action@v4.1.0
 
-  build:
+  tests:
     needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install dependencies
+        run: uv sync --dev
+
+      - name: Run unit tests
+        run: uv run pytest -m unit
+
+  build:
+    needs: tests
     runs-on: ubuntu-latest
     outputs:
       image: ${{ steps.meta.outputs.tags }}
