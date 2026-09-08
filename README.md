@@ -1,6 +1,7 @@
 # Events Aggregator API
 
-FastAPI-приложение для агрегации событий от Events Provider API с расширенными возможностями для работы с мероприятиями, регистрациями и местами.
+FastAPI-приложение для агрегации событий от Events Provider API с расширенными возможностями для работы с мероприятиями,
+регистрациями и местами.
 
 ## 📋 Содержание
 
@@ -17,7 +18,8 @@ FastAPI-приложение для агрегации событий от Event
 
 ## ✨ Возможности
 
-- **Фоновая синхронизация** — периодическое обновление событий из Events Provider API (инкрементально через `changed_at`)
+- **Фоновая синхронизация** — периодическое обновление событий из Events Provider API (инкрементально через
+  `changed_at`)
 - **Ручной запуск синхронизации** — триггер синхронизации по запросу
 - **Фильтрация и пагинация** — поиск событий по дате, пагинация по страницам
 - **Управление регистрациями** — создание и отмена билетов
@@ -26,17 +28,17 @@ FastAPI-приложение для агрегации событий от Event
 
 ## 🛠 Технологии
 
-| Компонент | Технология |
-|-----------|------------|
-| Фреймворк | FastAPI |
-| ORM | SQLAlchemy 2.0 (async) |
-| База данных | PostgreSQL |
-| HTTP-клиент | httpx |
-| Миграции | Alembic |
-| Сборка | uv |
-| Линтинг | Ruff |
-| Тесты | pytest + pytest-asyncio |
-| Контейнеризация | Docker |
+| Компонент       | Технология              |
+|-----------------|-------------------------|
+| Фреймворк       | FastAPI                 |
+| ORM             | SQLAlchemy 2.0 (async)  |
+| База данных     | PostgreSQL              |
+| HTTP-клиент     | httpx                   |
+| Миграции        | Alembic                 |
+| Сборка          | uv                      |
+| Линтинг         | Ruff                    |
+| Тесты           | pytest + pytest-asyncio |
+| Контейнеризация | Docker                  |
 
 ## 🚀 Быстрый старт
 
@@ -65,19 +67,19 @@ uv run uvicorn app.main:app --reload
 
 Проект использует `.env` файл. Скопируйте `.env.example` и заполните значения:
 
-| Переменная | Описание | По умолчанию |
-|------------|----------|--------------|
-| `APP_TITLE` | Заголовок приложения | `Events Aggregator` |
-| `APP_DESCRIPTION` | Описание приложения | `Special aggregator for Events Provider API` |
-| `ORIGINS` | Список разрешённых CORS-источников (через запятую) | `*` |
-| `UPDATE_INTERVAL_H` | Интервал фоновой синхронизации в часах | `24` |
-| `PROVIDER_BASE_URL` | Базовый URL Events Provider API | `` |
-| `PROVIDER_API_KEY` | API-ключ для Events Provider API | `` |
-| `POSTGRES_HOST` | Хост PostgreSQL | `localhost` |
-| `POSTGRES_USERNAME` | Имя пользователя PostgreSQL | `postgres` |
-| `POSTGRES_PASSWORD` | Пароль PostgreSQL | `postgres` |
-| `POSTGRES_DATABASE_NAME` | Имя базы данных PostgreSQL | `postgres` |
-| `POSTGRES_PORT` | Порт PostgreSQL | `5432` |
+| Переменная               | Описание                                           | По умолчанию                                 |
+|--------------------------|----------------------------------------------------|----------------------------------------------|
+| `APP_TITLE`              | Заголовок приложения                               | `Events Aggregator`                          |
+| `APP_DESCRIPTION`        | Описание приложения                                | `Special aggregator for Events Provider API` |
+| `ORIGINS`                | Список разрешённых CORS-источников (через запятую) | `*`                                          |
+| `UPDATE_INTERVAL_H`      | Интервал фоновой синхронизации в часах             | `24`                                         |
+| `PROVIDER_BASE_URL`      | Базовый URL Events Provider API                    | ``                                           |
+| `PROVIDER_API_KEY`       | API-ключ для Events Provider API                   | ``                                           |
+| `POSTGRES_HOST`          | Хост PostgreSQL                                    | `localhost`                                  |
+| `POSTGRES_USERNAME`      | Имя пользователя PostgreSQL                        | `postgres`                                   |
+| `POSTGRES_PASSWORD`      | Пароль PostgreSQL                                  | `postgres`                                   |
+| `POSTGRES_DATABASE_NAME` | Имя базы данных PostgreSQL                         | `postgres`                                   |
+| `POSTGRES_PORT`          | Порт PostgreSQL                                    | `5432`                                       |
 
 ## 🔌 API Endpoints
 
@@ -206,7 +208,8 @@ uv run alembic upgrade head
 
 ## 🧪 Тесты
 
-Проект использует [pytest](https://docs.pytest.org/) с [pytest-asyncio](https://pytest-asyncio.readthedocs.io/) для асинхронных тестов.
+Проект использует [pytest](https://docs.pytest.org/) с [pytest-asyncio](https://pytest-asyncio.readthedocs.io/) для
+асинхронных тестов.
 
 ```bash
 # Запуск всех тестов
@@ -227,16 +230,17 @@ pytest --cache-clear
 
 ### Маркеры тестов
 
-| Маркер | Описание |
-|--------|----------|
-| `unit` | Юнит-тесты отдельных функций и методов |
+| Маркер  | Описание                                                                                    |
+|---------|---------------------------------------------------------------------------------------------|
+| `unit`  | Юнит-тесты отдельных функций и методов                                                      |
 | `integ` | Интеграционные тесты — используют testcontainers для запуска PostgreSQL в Docker-контейнере |
 
 > **Примечание:** Маркеры в процессе расширения. Полный список: `pytest --markers`
 
 ### Тестирование с PostgreSQL
 
-Интеграционные тесты используют [testcontainers](https://testcontainers-python.readthedocs.io/) для запуска PostgreSQL в Docker-контейнере. Убедитесь, что Docker запущен.
+Интеграционные тесты используют [testcontainers](https://testcontainers-python.readthedocs.io/) для запуска PostgreSQL в
+Docker-контейнере. Убедитесь, что Docker запущен.
 
 ## 🔄 Линтинг
 
@@ -291,7 +295,3 @@ docker compose up -d
 ```bash
 CMD ["bash", "./run.sh"]
 ```
-
-## 📄 Лицензия
-
-[Укажите лицензию]
