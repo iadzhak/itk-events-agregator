@@ -25,7 +25,7 @@ async def sync_meta_once():
             events_repo=EventRepository(session),
             place_repo=PlaceRepository(session),
         )
-        last_sync_time = await service.run(session)
+        last_sync_time = await service.run()
         await client.aclose()
         return last_sync_time
 
