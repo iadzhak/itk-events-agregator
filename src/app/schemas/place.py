@@ -20,6 +20,6 @@ class PlaceFull(PlaceOut):
     seats_pattern: str
 
 
-class PlaceDB(PlaceOut):
+class PlaceDB(PlaceFull):
     changed_at: dt.datetime
     created_at: dt.datetime

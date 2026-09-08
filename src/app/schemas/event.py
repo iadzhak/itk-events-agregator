@@ -26,7 +26,7 @@ class EventDetail(EventOut):
     place: PlaceFull
 
 
-class EventDB(EventOut):
+class EventDB(EventDetail):
     place: PlaceDB
     status_changed_at: dt.datetime
     changed_at: dt.datetime
