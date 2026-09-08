@@ -12,7 +12,7 @@ from app.schemas import (
     EventOut,
     EventSeatsResponse,
     PaginatedResponse,
-    Pagination,
+    Pagination, EventDetail,
 )
 from app.types import EventStatus
 
@@ -37,11 +37,11 @@ class EventService:
         self._repo = repo
         self._cache = cache
 
-    async def get(self, event_id: UUID) -> EventOut:
+    async def get(self, event_id: UUID) -> EventDetail:
         event = await self._repo.get_by_id(event_id)
         if event is None:
             raise NotFoundError(f'Мероприятие id "{event_id!s}" не найдено')
-        return EventOut.model_validate(event)
+        return EventDetail.model_validate(event)
 
     async def get_paginated(
         self,

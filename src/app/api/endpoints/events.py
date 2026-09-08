@@ -12,6 +12,7 @@ from app.schemas import (
     EventSeatsResponse,
     PaginatedResponse,
     Pagination,
+    EventDetail,
 )
 
 router = APIRouter()
@@ -31,7 +32,7 @@ async def get_all_events(
     )
 
 
-@router.get('/{event_id}', response_model=EventOut)
+@router.get('/{event_id}', response_model=EventDetail)
 async def get_event_details(
     event_id: UUID,
     event_service: EventServiceDep,

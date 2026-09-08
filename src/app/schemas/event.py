@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
-from app.schemas.place import PlaceDB, PlaceOut
+from app.schemas.place import PlaceDB, PlaceOut, PlaceFull
 from app.types import EventStatus
 
 
@@ -20,6 +20,10 @@ class EventOut(EventBase):
     number_of_visitors: int
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class EventDetail(EventOut):
+    place: PlaceFull
 
 
 class EventDB(EventOut):

@@ -10,6 +10,8 @@ __all__ = [
     'PlaceDB',
     'Ticket',
     'UserBuyTicket',
+    'PlaceFull',
+    'EventDetail'
 ]
 
 from app.schemas.event import (
@@ -18,7 +20,8 @@ from app.schemas.event import (
     EventOut,
     EventSeatsResponse,
     EventsExternal,
+    EventDetail
 )
 from app.schemas.pagination import PaginatedResponse, Pagination
-from app.schemas.place import PlaceDB
+from app.schemas.place import PlaceDB, PlaceFull
 from app.schemas.ticket import CancelTicket, Ticket, UserBuyTicket

@@ -12,9 +12,12 @@ class PlaceBase(BaseModel):
 class PlaceOut(PlaceBase):
     city: str
     address: str
-    seats_pattern: str
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class PlaceFull(PlaceOut):
+    seats_pattern: str
 
 
 class PlaceDB(PlaceOut):
