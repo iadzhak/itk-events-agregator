@@ -2,24 +2,12 @@ import datetime as dt
 from uuid import uuid4
 
 import pytest
-import pytest_asyncio
-from httpx import ASGITransport, AsyncClient
 
-from app.main import app
 from app.schemas import EventDB, PlaceDB
 
 
 def generate_date(days_delta: int = 0):
     return dt.datetime.now(tz=dt.UTC) + dt.timedelta(days=days_delta)
-
-
-@pytest_asyncio.fixture(scope='session')
-async def test_client():
-    async with AsyncClient(
-            transport=ASGITransport(app=app),
-            base_url='http://test'
-    ) as client:
-        yield client
 
 
 @pytest.fixture

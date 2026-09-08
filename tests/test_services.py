@@ -7,7 +7,7 @@ import pytest
 from cachetools import TTLCache
 
 from app.clients import BaseProviderClient
-from app.core import BadRequestError, NotFoundError, ExternalApiError
+from app.core import BadRequestError, NotFoundError
 from app.repository import EventRepository
 from app.schemas import (
     EventDB,
@@ -17,7 +17,7 @@ from app.schemas import (
     Pagination,
     PlaceDB,
 )
-from app.services.event import EventService, get_seats_cache
+from app.services.event import EventService
 from app.services.sync import SyncService
 from app.types import EventStatus, SyncStatus
 from app.utils import BasePaginator

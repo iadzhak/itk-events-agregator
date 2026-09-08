@@ -3,22 +3,19 @@ from uuid import uuid4
 
 import pytest
 import pytest_asyncio
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, \
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_sessionmaker,
     create_async_engine
+)
 
 from app.core import Base
 from app.models import Event, Place, SyncMeta, Ticket
-from app.repository.base import BaseRepository
 from app.repository.event import EventRepository
 from app.repository.place import PlaceRepository
 from app.repository.sync import SyncRepository
 from app.repository.ticket import TicketRepository
 from app.schemas import EventFilter
-
-
-@pytest.fixture(scope='session')
-def anyio_backend():
-    return 'asyncio'
 
 
 @pytest_asyncio.fixture(scope='session')
@@ -381,7 +378,8 @@ class TestEventRepo:
         assert items[0].place is not None
         assert items[0].place.name == 'Special Venue'
 
-    async def test_get_paginated_order_by_event_time(self, session: AsyncSession):
+    async def test_get_paginated_order_by_event_time(self,
+                                                     session: AsyncSession):
         place = _make_place()
         session.add(place)
         await session.flush()
