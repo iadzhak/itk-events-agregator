@@ -19,7 +19,6 @@ router = APIRouter()
 
 @router.get('', response_model=PaginatedResponse[EventOut])
 async def get_all_events(
-    *,
     filters: Annotated[EventFilter, Depends()],
     pagination: Annotated[Pagination, Depends()],
     event_service: EventServiceDep,
