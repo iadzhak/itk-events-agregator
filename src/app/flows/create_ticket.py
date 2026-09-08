@@ -76,7 +76,7 @@ class CreateTicketUseCase:
 
         # save ticket in db
         data = {
-            'ticket_id': ticket_id,
+            'id': ticket_id,
             'event_id': event_id,
             'first_name': first_name,
             'last_name': last_name,
