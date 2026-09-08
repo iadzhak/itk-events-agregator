@@ -7,12 +7,12 @@ from app.dependencies import (
     EventServiceDep,
 )
 from app.schemas import (
+    EventDetail,
     EventFilter,
     EventOut,
     EventSeatsResponse,
     PaginatedResponse,
     Pagination,
-    EventDetail,
 )
 
 router = APIRouter()

@@ -1,7 +1,6 @@
 import datetime as dt
 
 from pydantic import ValidationError
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.clients import BaseProviderClient
 from app.core import ExternalApiError, get_logger

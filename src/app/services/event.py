@@ -8,11 +8,12 @@ from app.clients import BaseProviderClient
 from app.core import BadRequestError, NotFoundError
 from app.repository import EventRepository
 from app.schemas import (
+    EventDetail,
     EventFilter,
     EventOut,
     EventSeatsResponse,
     PaginatedResponse,
-    Pagination, EventDetail,
+    Pagination,
 )
 from app.types import EventStatus
 

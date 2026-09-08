@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
-from app.schemas.place import PlaceDB, PlaceOut, PlaceFull
+from app.schemas.place import PlaceDB, PlaceFull, PlaceOut
 from app.types import EventStatus
 
 
