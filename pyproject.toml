@@ -35,6 +35,11 @@ dev = [
     "testcontainers[postgres]>=4.15.0",
 ]
 
+[tool.mypy]
+exclude = [
+    'alembic',
+    'tests/'
+]
 
 [tool.ruff]
 line-length = 79
