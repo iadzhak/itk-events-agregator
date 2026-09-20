@@ -44,7 +44,7 @@ class SyncService:
         meta.sync_status = SyncStatus.RUNNING
         meta.last_sync_time = now
         await self._sync_repo.update(meta, {})
-        logger.info(f'Запущена фоновая синхронизация от {now!s}')
+        logger.info('Запущена фоновая синхронизация от %s', str(now))
         try:
             last_event = await self._proceed_events(meta)
             meta.sync_status = SyncStatus.SUCCESS
@@ -52,10 +52,10 @@ class SyncService:
                 meta.last_changed_at = last_event.changed_at
         except (ExternalApiError, ValidationError):
             meta.sync_status = SyncStatus.ERROR
-            logger.exception(f'Ошибка фоновой синхронизации от {now!s}')
+            logger.exception('Ошибка фоновой синхронизации от %s', str(now))
         finally:
             await self._sync_repo.update(meta, {})
-        logger.info(f'Завершена фоновая синхронизация от {now!s}')
+        logger.info('Завершена фоновая синхронизация от %s', str(now))
         return meta.last_sync_time
 
     async def _proceed_db_obj[T: Event | Place](
