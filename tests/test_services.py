@@ -20,7 +20,7 @@ from app.schemas import (
 from app.services.event import EventService
 from app.services.sync import SyncService
 from app.types import EventStatus, SyncStatus
-from app.utils import BasePaginator
+from app.utils import BasePaginatorFactory
 
 
 # =============================================================================
@@ -363,7 +363,7 @@ class TestSyncService:
     def _make_service(
         self,
         client_mock: BaseProviderClient | None = None,
-        paginator_class_mock: type[BasePaginator] | None = None,
+        paginator_class_mock: BasePaginatorFactory | None = None,
         sync_repo_mock: Any = None,
         events_repo_mock: Any = None,
         place_repo_mock: Any = None,
@@ -371,7 +371,7 @@ class TestSyncService:
         if client_mock is None:
             client_mock = MagicMock(spec=BaseProviderClient)
         if paginator_class_mock is None:
-            paginator_class_mock = MagicMock(spec=type[BasePaginator])
+            paginator_class_mock = MagicMock(spec=BasePaginatorFactory)
         if sync_repo_mock is None:
             sync_repo_mock = MagicMock()
         if events_repo_mock is None:
