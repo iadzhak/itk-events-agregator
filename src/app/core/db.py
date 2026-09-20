@@ -2,7 +2,7 @@ import datetime as dt
 from uuid import UUID
 
 from sqlalchemy import UUID as UUID_SA
-from sqlalchemy import DateTime, String
+from sqlalchemy import DateTime, Integer, String
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import (
     DeclarativeBase,
@@ -18,13 +18,24 @@ AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
 
 class Base(DeclarativeBase):
-    @declared_attr
+    @declared_attr.directive
     def __tablename__(cls) -> str:  # noqa N805
         return cls.__name__.lower()
 
 
-class CommonMixin:
+class BaseUUID(Base):
+    __abstract__ = True
+
     id: Mapped[UUID] = mapped_column(UUID_SA, primary_key=True)
+
+
+class BaseInt(Base):
+    __abstract__ = True
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+
+
+class CommonMixin:
     name: Mapped[str] = mapped_column(String)
     changed_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True))

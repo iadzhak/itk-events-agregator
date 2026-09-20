@@ -10,10 +10,10 @@ import datetime as dt
 from sqlalchemy import DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.core import Base, CommonMixin
+from app.core import BaseUUID, CommonMixin
 
 
-class Event(CommonMixin, Base):
+class Event(CommonMixin, BaseUUID):
     event_time: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True))
     registration_deadline: Mapped[dt.datetime] = mapped_column(
         DateTime(timezone=True)

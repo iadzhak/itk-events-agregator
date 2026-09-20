@@ -1,16 +1,19 @@
 import datetime as dt
 from collections import deque
 from collections.abc import AsyncIterator
-from typing import Self
+from typing import Callable, Self, TypeAlias
 from urllib.parse import parse_qs, urlparse
 
 from app.clients import BaseProviderClient
+from app.core import ExternalApiError
 from app.schemas import EventDB
 
-BasePaginator = AsyncIterator[EventDB]
+BasePaginatorFactory: TypeAlias = Callable[
+    [BaseProviderClient, dt.datetime], AsyncIterator[EventDB]
+]
 
 
-class EventsPaginator(BasePaginator):
+class EventsPaginator(AsyncIterator[EventDB]):
     def __init__(
         self, client: BaseProviderClient, changed_at: dt.datetime
     ) -> None:
@@ -43,7 +46,10 @@ class EventsPaginator(BasePaginator):
     def get_cursor(url: str) -> str:
         parsed = urlparse(url)
         query = parse_qs(parsed.query)
-        return query.get('cursor', [None])[0]
+        cursor = query.get('cursor')
+        if cursor is None:
+            raise ExternalApiError(f'No cursor in URL: {url}')
+        return str(cursor[0])
 
 
 def get_events_paginator_class():

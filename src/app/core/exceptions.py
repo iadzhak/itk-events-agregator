@@ -17,5 +17,9 @@ class BadRequestError(BaseError):
     status_code = status.HTTP_400_BAD_REQUEST
 
 
+class InternalError(BaseError):
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
 class ExternalApiError(Exception):
     """Ошибка внешнего API клиента"""

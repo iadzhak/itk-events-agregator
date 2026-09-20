@@ -1,7 +1,11 @@
-__all__ = ['BasePaginator', 'EventsPaginator', 'get_events_paginator_class']
+__all__ = [
+    'BasePaginatorFactory',
+    'EventsPaginator',
+    'get_events_paginator_class',
+]
 
 from app.utils.events_paginator import (
-    BasePaginator,
+    BasePaginatorFactory,
     EventsPaginator,
     get_events_paginator_class,
 )

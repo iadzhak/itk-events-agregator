@@ -3,10 +3,15 @@ import re
 from uuid import UUID
 
 from app.clients import BaseProviderClient
-from app.core import BadRequestError, NotFoundError
+from app.core import BadRequestError, InternalError, NotFoundError, get_logger
 from app.repository import EventRepository, TicketRepository
 from app.schemas import Ticket
 from app.types import EventStatus
+
+RANGE_PATTERN = re.compile(r'([A-Z])(\d+)-(\d+)')
+PLACE_PATTERN = re.compile(r'([A-Z])(\d+)')
+
+logger = get_logger(__name__)
 
 
 class CreateTicketUseCase:
@@ -89,15 +94,19 @@ class CreateTicketUseCase:
         return Ticket(ticket_id=ticket_id)
 
     def is_seat_exist(self, seat: str, seats_pattern: str):
-        range_pattern = re.compile(r'([A-Z])(\d+)-(\d+)')
-        place_pattern = re.compile(r'([A-Z])(\d+)')
         parts = seats_pattern.split(',')
         available = {}
         for part in parts:
-            m = range_pattern.match(part)
+            m = RANGE_PATTERN.match(part)
+            if m is None:
+                logger.error('Некорректный seats_pattern: %s', seats_pattern)
+                raise InternalError('Ошибка чтения мест на мероприятии')
             section, min_place, max_place = m.groups()
             available[section] = int(min_place), int(max_place)
-        s, p = place_pattern.match(seat).groups()
+        m_seats = PLACE_PATTERN.match(seat)
+        if m_seats is None:
+            raise BadRequestError(f'Неверный формат диапазона мест: {seat!r}')
+        s, p = m_seats.groups()
         p = int(p)
         if s not in available:
             all_s = ','.join(available.keys())

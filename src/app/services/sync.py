@@ -7,7 +7,7 @@ from app.core import ExternalApiError, get_logger
 from app.models import Event, Place, SyncMeta
 from app.repository import BaseRepository
 from app.types import SyncStatus
-from app.utils import BasePaginator
+from app.utils import BasePaginatorFactory
 
 logger = get_logger(__name__)
 
@@ -18,7 +18,7 @@ class SyncService:
     def __init__(
         self,
         client: BaseProviderClient,
-        paginator_class: type[BasePaginator],
+        paginator_class: BasePaginatorFactory,
         sync_repo: BaseRepository[SyncMeta],
         events_repo: BaseRepository[Event],
         place_repo: BaseRepository[Place],
@@ -58,10 +58,10 @@ class SyncService:
         logger.info(f'Завершена фоновая синхронизация от {now!s}')
         return meta.last_sync_time
 
-    async def _proceed_db_obj(
+    async def _proceed_db_obj[T: Event | Place](
         self,
         data: dict,
-        repo: BaseRepository[Event | Place],
+        repo: BaseRepository[T],
     ):
         db_obj = await repo.get_by_id(_id=data['id'])
         if db_obj is None:

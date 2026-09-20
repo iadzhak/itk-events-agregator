@@ -1,3 +1,4 @@
+from typing import TypeAlias
 from uuid import UUID
 
 from cachetools import TTLCache
@@ -20,10 +21,12 @@ from app.types import EventStatus
 CACHE_MAX_SIZE = 30
 CACHE_TTL = 30
 
-seats_cache = TTLCache(maxsize=CACHE_MAX_SIZE, ttl=CACHE_TTL)
+SCT: TypeAlias = TTLCache[UUID, list[str]]
+
+seats_cache: SCT = TTLCache(maxsize=CACHE_MAX_SIZE, ttl=CACHE_TTL)
 
 
-def get_seats_cache():
+def get_seats_cache() -> SCT:
     return seats_cache
 
 
