@@ -17,7 +17,7 @@ class BaseRepository[T: BaseInt | BaseUUID]:
         new_obj = self.model(**data)
         self.session.add(new_obj)
         try:
-            await self.session.commit()
+            await self.session.flush()
             return new_obj
         except IntegrityError as e:
             await self.session.rollback()
@@ -43,10 +43,10 @@ class BaseRepository[T: BaseInt | BaseUUID]:
             if key in data:
                 setattr(db_obj, key, data[key])
         self.session.add(db_obj)
-        await self.session.commit()
+        await self.session.flush()
         return db_obj
 
     async def delete(self, db_obj: T) -> T:
         await self.session.delete(db_obj)
-        await self.session.commit()
+        await self.session.flush()
         return db_obj

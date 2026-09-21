@@ -43,4 +43,10 @@ class CommonMixin:
 
 async def get_session():
     async with AsyncSessionLocal() as session:
-        yield session
+        try:
+            yield session
+        except Exception:
+            await session.rollback()
+            raise
+        else:
+            await session.commit()

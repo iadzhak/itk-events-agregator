@@ -8,5 +8,5 @@ class TicketRepository(BaseRepository):
     async def create(self, data: dict) -> Ticket:
         ticket = Ticket(**data)
         self.session.add(ticket)
-        await self.session.commit()
+        await self.session.flush()
         return ticket
