@@ -41,11 +41,11 @@ class SyncService:
             logger.info('Синхронизация уже идет')
             return meta.last_sync_time
         now = dt.datetime.now(tz=dt.UTC)
-        meta.sync_status = SyncStatus.RUNNING
-        meta.last_sync_time = now
-        await self._sync_repo.update(meta, {})
-        logger.info('Запущена фоновая синхронизация от %s', str(now))
         try:
+            meta.sync_status = SyncStatus.RUNNING
+            meta.last_sync_time = now
+            await self._sync_repo.update(meta, {})
+            logger.info('Запущена фоновая синхронизация от %s', str(now))
             last_event = await self._proceed_events(meta)
             meta.sync_status = SyncStatus.SUCCESS
             if last_event:
