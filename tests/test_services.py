@@ -127,16 +127,13 @@ class TestEventService:
         repo_mock = MagicMock(spec=EventRepository)
         repo_mock.get_paginated = AsyncMock(return_value=([db_event], 1))
 
-        request_mock = MagicMock()
-        request_mock.url.include_query_params.return_value = str(
-            'http://test/events?page=2'
-        )
+        current_url = 'http://test/events?page=2'
 
         service = self._make_service(repo_mock=repo_mock)
         filters = EventFilter()
         pagination = Pagination(page=1, page_size=10)
 
-        result = await service.get_paginated(filters, pagination, request_mock)
+        result = await service.get_paginated(filters, pagination, current_url)
 
         assert isinstance(result, PaginatedResponse)
         assert result.count == 1
@@ -172,16 +169,13 @@ class TestEventService:
         repo_mock = MagicMock(spec=EventRepository)
         repo_mock.get_paginated = AsyncMock(return_value=([db_event], 25))
 
-        request_mock = MagicMock()
-        request_mock.url.include_query_params.return_value = str(
-            'http://test/events?page=2'
-        )
+        current_url = 'http://test/events?page=2'
 
         service = self._make_service(repo_mock=repo_mock)
         filters = EventFilter()
         pagination = Pagination(page=1, page_size=10)
 
-        result = await service.get_paginated(filters, pagination, request_mock)
+        result = await service.get_paginated(filters, pagination, current_url)
 
         assert result.next is not None
 
@@ -211,16 +205,13 @@ class TestEventService:
         repo_mock = MagicMock(spec=EventRepository)
         repo_mock.get_paginated = AsyncMock(return_value=([db_event], 10))
 
-        request_mock = MagicMock()
-        request_mock.url.include_query_params.return_value = str(
-            'http://test/events?page=1'
-        )
+        current_url = 'http://test/events?page=1'
 
         service = self._make_service(repo_mock=repo_mock)
         filters = EventFilter()
         pagination = Pagination(page=2, page_size=10)
 
-        result = await service.get_paginated(filters, pagination, request_mock)
+        result = await service.get_paginated(filters, pagination, current_url)
 
         assert result.previous is not None
 

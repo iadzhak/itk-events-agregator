@@ -26,9 +26,7 @@ async def get_all_events(
     request: Request,
 ):
     return await event_service.get_paginated(
-        request=request,
-        filters=filters,
-        pagination=pagination,
+        filters=filters, pagination=pagination, current_url=str(request.url)
     )
 
 
