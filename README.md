@@ -80,6 +80,8 @@ uv run uvicorn app.main:app --reload
 | `POSTGRES_PASSWORD`      | Пароль PostgreSQL                                  | `postgres`                                   |
 | `POSTGRES_DATABASE_NAME` | Имя базы данных PostgreSQL                         | `postgres`                                   |
 | `POSTGRES_PORT`          | Порт PostgreSQL                                    | `5432`                                       |
+| `POLLING_INTERVAL_S`     | Интервал проверки новых событий для обработки      | `15`                                         |
+| `MAX_RETRIES`            | Максимально количество попыток отправки события    | `3`                                          |
 
 ## 🔌 API Endpoints
 
