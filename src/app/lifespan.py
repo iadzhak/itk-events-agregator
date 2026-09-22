@@ -13,8 +13,8 @@ from app.workers import OutboxWorker
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     outbox_worker = OutboxWorker(
-        polling_interval_s=0,
-        max_retries=0,
+        polling_interval_s=settings.polling_interval_s,
+        max_retries=settings.max_retries,
         outbox_repo_cls=OutboxRepository,
         session_factory=AsyncSessionLocal,
     )
