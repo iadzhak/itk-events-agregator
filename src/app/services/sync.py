@@ -7,7 +7,7 @@ from app.core import ExternalApiError, get_logger
 from app.models import Event, Place, SyncMeta
 from app.repository import BaseRepository
 from app.types import SyncStatus
-from app.utils import BasePaginator
+from app.utils import BasePaginatorFactory
 
 logger = get_logger(__name__)
 
@@ -18,7 +18,7 @@ class SyncService:
     def __init__(
         self,
         client: BaseProviderClient,
-        paginator_class: type[BasePaginator],
+        paginator_class: BasePaginatorFactory,
         sync_repo: BaseRepository[SyncMeta],
         events_repo: BaseRepository[Event],
         place_repo: BaseRepository[Place],
@@ -41,27 +41,27 @@ class SyncService:
             logger.info('Синхронизация уже идет')
             return meta.last_sync_time
         now = dt.datetime.now(tz=dt.UTC)
-        meta.sync_status = SyncStatus.RUNNING
-        meta.last_sync_time = now
-        await self._sync_repo.update(meta, {})
-        logger.info(f'Запущена фоновая синхронизация от {now!s}')
         try:
+            meta.sync_status = SyncStatus.RUNNING
+            meta.last_sync_time = now
+            await self._sync_repo.update(meta, {})
+            logger.info('Запущена фоновая синхронизация от %s', str(now))
             last_event = await self._proceed_events(meta)
             meta.sync_status = SyncStatus.SUCCESS
             if last_event:
                 meta.last_changed_at = last_event.changed_at
         except (ExternalApiError, ValidationError):
             meta.sync_status = SyncStatus.ERROR
-            logger.exception(f'Ошибка фоновой синхронизации от {now!s}')
+            logger.exception('Ошибка фоновой синхронизации от %s', str(now))
         finally:
             await self._sync_repo.update(meta, {})
-        logger.info(f'Завершена фоновая синхронизация от {now!s}')
+        logger.info('Завершена фоновая синхронизация от %s', str(now))
         return meta.last_sync_time
 
-    async def _proceed_db_obj(
+    async def _proceed_db_obj[T: Event | Place](
         self,
         data: dict,
-        repo: BaseRepository[Event | Place],
+        repo: BaseRepository[T],
     ):
         db_obj = await repo.get_by_id(_id=data['id'])
         if db_obj is None:

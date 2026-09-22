@@ -1,7 +1,8 @@
+from typing import TypeAlias
+from urllib.parse import parse_qs, urlencode, urlparse
 from uuid import UUID
 
 from cachetools import TTLCache
-from fastapi import Request
 from pydantic import HttpUrl
 
 from app.clients import BaseProviderClient
@@ -20,10 +21,12 @@ from app.types import EventStatus
 CACHE_MAX_SIZE = 30
 CACHE_TTL = 30
 
-seats_cache = TTLCache(maxsize=CACHE_MAX_SIZE, ttl=CACHE_TTL)
+SCT: TypeAlias = TTLCache[UUID, list[str]]
+
+seats_cache: SCT = TTLCache(maxsize=CACHE_MAX_SIZE, ttl=CACHE_TTL)
 
 
-def get_seats_cache():
+def get_seats_cache() -> SCT:
     return seats_cache
 
 
@@ -45,10 +48,7 @@ class EventService:
         return EventDetail.model_validate(event)
 
     async def get_paginated(
-        self,
-        filters: EventFilter,
-        pagination: Pagination,
-        request: Request,
+        self, filters: EventFilter, pagination: Pagination, current_url: str
     ) -> PaginatedResponse[EventOut]:
         limit = pagination.page_size
         offset = (pagination.page - 1) * limit
@@ -58,14 +58,17 @@ class EventService:
 
         next_url = None
         previous_url = None
+        parsed_url = urlparse(current_url)
         if limit + offset < total:
-            next_url = str(
-                request.url.include_query_params(page=pagination.page + 1)
-            )
+            query = parse_qs(parsed_url.query)
+            query['page'] = [str(pagination.page + 1)]
+            query_str = urlencode(query, doseq=True)
+            next_url = parsed_url._replace(query=query_str).geturl()
         if pagination.page > 1:
-            previous_url = str(
-                request.url.include_query_params(page=pagination.page - 1)
-            )
+            query = parse_qs(parsed_url.query)
+            query['page'] = [str(pagination.page - 1)]
+            query_str = urlencode(query, doseq=True)
+            previous_url = parsed_url._replace(query=query_str).geturl()
 
         return PaginatedResponse(
             count=total,

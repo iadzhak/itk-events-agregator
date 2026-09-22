@@ -26,6 +26,7 @@ async def sync_meta_once():
             place_repo=PlaceRepository(session),
         )
         last_sync_time = await service.run()
+        await session.commit()
         await client.aclose()
         return last_sync_time
 
@@ -36,7 +37,11 @@ async def periodic_sync_meta(period_h: int):
             last_sync_time = await sync_meta_once()
             next_sync_time = last_sync_time + dt.timedelta(hours=period_h)
             now = dt.datetime.now(tz=dt.UTC)
-            delta = next_sync_time - now
+            if now >= next_sync_time:
+                delta = dt.timedelta(hours=period_h)
+                next_sync_time = now + delta
+            else:
+                delta = next_sync_time - now
             logger.info(
                 f'Следующая синхронизация запанирована на {next_sync_time!s}'
             )

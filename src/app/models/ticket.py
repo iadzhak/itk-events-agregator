@@ -9,10 +9,10 @@ from sqlalchemy import UUID as UUID_SA
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.core import Base
+from app.core import BaseUUID
 
 
-class Ticket(Base):
+class Ticket(BaseUUID):
     id: Mapped[UUID] = mapped_column(UUID_SA, primary_key=True)
     seat: Mapped[str] = mapped_column(String, nullable=False)
     event_id: Mapped[UUID] = mapped_column(ForeignKey('event.id'))

@@ -10,12 +10,14 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from app.core import Base
-from app.models import Event, Place, SyncMeta, Ticket
+from app.models import Event, Place, SyncMeta, Ticket, Outbox
+from app.repository import OutboxRepository
 from app.repository.event import EventRepository
 from app.repository.place import PlaceRepository
 from app.repository.sync import SyncRepository
 from app.repository.ticket import TicketRepository
 from app.schemas import EventFilter
+from app.types import OutboxType, OutboxStatus
 
 
 @pytest_asyncio.fixture(scope='session')
@@ -106,6 +108,22 @@ def _make_sync(**kwargs) -> SyncMeta:
         last_sync_time=kwargs.get('last_sync_time', now),
         last_changed_at=kwargs.get('last_changed_at', now),
         sync_status=kwargs.get('sync_status', 'never'),
+    )
+
+
+def _make_outbox(**kwargs) -> Outbox:
+    payload = {
+        'message': 'Hello',
+        'reference_id': str(uuid4()),
+        'idempotency_key': str(uuid4())
+    }
+    return Outbox(
+        event_type=kwargs.get('event_type', OutboxType.EVENT_REGISTRATION),
+        aggregate_id=kwargs.get('aggregate_id', str(uuid4())),
+        payload=kwargs.get('payload', payload),
+        status=kwargs.get('status', OutboxStatus.PENDING),
+        retry_count=kwargs.get('retry_count', 0),
+        last_changed_at=kwargs.get('last_changed_at', None)
     )
 
 
@@ -794,3 +812,107 @@ class TestTicketRepo:
         found = await repo.get_by_id(ticket.id)
         assert found is not None
         assert found.email == ticket.email
+
+
+# ---------------------------------------------------------------------------
+# TestOutboxRepo — OutboxRepository
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integ
+@pytest.mark.asyncio
+class TestOutboxRepo:
+    """Tests for OutboxRepository: create, get_by_id, update, delete.
+
+    Outbox uses an integer primary key (unlike UUID for other entities).
+    """
+
+    async def test_create_outbox(self, session: AsyncSession):
+        outbox = _make_outbox()
+
+        repo = OutboxRepository(session)
+
+        db_obj = await repo.create({
+            'event_type': outbox.event_type,
+            'aggregate_id': outbox.aggregate_id,
+            'payload': outbox.payload,
+            'status': outbox.status,
+        })
+        await session.commit()
+
+        found = await repo.get_by_id(db_obj.id)
+
+        assert found is not None
+        assert found.status in OutboxStatus
+        assert found.created_at is not None
+        assert found.last_changed_at is not None
+
+    async def test_get_by_id(self, session: AsyncSession):
+        outbox = _make_outbox()
+        session.add(outbox)
+        await session.flush()
+
+        repo = OutboxRepository(session)
+        found = await repo.get_by_id(outbox.id)
+
+        assert found is not None
+        assert found.id == outbox.id
+
+    async def test_get_by_id_not_found(self, session: AsyncSession):
+        repo = OutboxRepository(session)
+        found = await repo.get_by_id(99999)
+        assert found is None
+
+    async def test_update_outbox(self, session: AsyncSession):
+        outbox = _make_outbox()
+        session.add(outbox)
+        await session.flush()
+
+        repo = OutboxRepository(session)
+        target = OutboxStatus.SENT
+        updated = await repo.update(outbox, {'status': target})
+
+        assert updated.status == target
+
+    async def test_delete_outbox(self, session: AsyncSession):
+        outbox = _make_outbox()
+        session.add(outbox)
+        await session.flush()
+
+        repo = OutboxRepository(session)
+        await repo.delete(outbox)
+
+        found = await repo.get_by_id(outbox.id)
+        assert found is None
+
+    async def test_sync_multiple_records(self, session: AsyncSession):
+        for i in range(3):
+            session.add(_make_outbox())
+        await session.flush()
+
+        repo = OutboxRepository(session)
+        items = []
+        for sid in range(1, 4):
+            found = await repo.get_by_id(sid)
+            if found:
+                items.append(found)
+
+        assert len(items) == 3
+
+    async def test_get_for_processing(self, session: AsyncSession):
+        max_retries = 3
+        pending = _make_outbox(status=OutboxStatus.PENDING)
+        failed = _make_outbox(status=OutboxStatus.FAILED)
+        retries_exceeded = _make_outbox(
+            status=OutboxStatus.FAILED,
+            retry_count=max_retries + 1
+        )
+        session.add_all([pending, failed, retries_exceeded])
+        await session.flush()
+
+        repo = OutboxRepository(session)
+
+        found = await repo.get_for_processing(max_retries)
+        assert found is not None
+        assert isinstance(found, list)
+        assert len(found) == 2
+        assert not any(f.id == retries_exceeded.id for f in found)

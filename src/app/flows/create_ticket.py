@@ -1,12 +1,19 @@
 import datetime as dt
 import re
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from app.clients import BaseProviderClient
-from app.core import BadRequestError, NotFoundError
-from app.repository import EventRepository, TicketRepository
+from app.core import BadRequestError, InternalError, NotFoundError, get_logger
+from app.repository import EventRepository, OutboxRepository, TicketRepository
 from app.schemas import Ticket
-from app.types import EventStatus
+from app.types import EventStatus, OutboxType
+
+RANGE_PATTERN = re.compile(r'([A-Z])(\d+)-(\d+)')
+PLACE_PATTERN = re.compile(r'([A-Z])(\d+)')
+
+logger = get_logger(__name__)
+
+NOTIFICATION_MSG = 'Вы успешно зарегистрированы на мероприятие - {name} {time}'
 
 
 class CreateTicketUseCase:
@@ -15,10 +22,12 @@ class CreateTicketUseCase:
         client: BaseProviderClient,
         events: EventRepository,
         tickets: TicketRepository,
+        outbox: OutboxRepository,
     ) -> None:
         self._client = client
         self._events = events
         self._tickets = tickets
+        self._outbox = outbox
 
     async def do(
         self,
@@ -84,20 +93,37 @@ class CreateTicketUseCase:
             'seat': seat,
         }
         await self._tickets.create(data)
+        msg = NOTIFICATION_MSG.format(
+            name=event.name, time=event.event_time.strftime('%d.%m.%Y %H:%M')
+        )
+        data_out = {
+            'aggregate_id': str(ticket_id),
+            'event_type': OutboxType.EVENT_REGISTRATION,
+            'payload': {
+                'message': msg,
+                'reference_id': ticket_id,
+                'idempotency_key': str(uuid4()),
+            },
+        }
+        await self._outbox.create(data_out)
 
         # return response
         return Ticket(ticket_id=ticket_id)
 
     def is_seat_exist(self, seat: str, seats_pattern: str):
-        range_pattern = re.compile(r'([A-Z])(\d+)-(\d+)')
-        place_pattern = re.compile(r'([A-Z])(\d+)')
         parts = seats_pattern.split(',')
         available = {}
         for part in parts:
-            m = range_pattern.match(part)
+            m = RANGE_PATTERN.match(part)
+            if m is None:
+                logger.error('Некорректный seats_pattern: %s', seats_pattern)
+                raise InternalError('Ошибка чтения мест на мероприятии')
             section, min_place, max_place = m.groups()
             available[section] = int(min_place), int(max_place)
-        s, p = place_pattern.match(seat).groups()
+        m_seats = PLACE_PATTERN.match(seat)
+        if m_seats is None:
+            raise BadRequestError(f'Неверный формат диапазона мест: {seat!r}')
+        s, p = m_seats.groups()
         p = int(p)
         if s not in available:
             all_s = ','.join(available.keys())

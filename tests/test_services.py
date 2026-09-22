@@ -20,7 +20,7 @@ from app.schemas import (
 from app.services.event import EventService
 from app.services.sync import SyncService
 from app.types import EventStatus, SyncStatus
-from app.utils import BasePaginator
+from app.utils import BasePaginatorFactory
 
 
 # =============================================================================
@@ -127,16 +127,13 @@ class TestEventService:
         repo_mock = MagicMock(spec=EventRepository)
         repo_mock.get_paginated = AsyncMock(return_value=([db_event], 1))
 
-        request_mock = MagicMock()
-        request_mock.url.include_query_params.return_value = str(
-            'http://test/events?page=2'
-        )
+        current_url = 'http://test/events?page=2'
 
         service = self._make_service(repo_mock=repo_mock)
         filters = EventFilter()
         pagination = Pagination(page=1, page_size=10)
 
-        result = await service.get_paginated(filters, pagination, request_mock)
+        result = await service.get_paginated(filters, pagination, current_url)
 
         assert isinstance(result, PaginatedResponse)
         assert result.count == 1
@@ -172,16 +169,13 @@ class TestEventService:
         repo_mock = MagicMock(spec=EventRepository)
         repo_mock.get_paginated = AsyncMock(return_value=([db_event], 25))
 
-        request_mock = MagicMock()
-        request_mock.url.include_query_params.return_value = str(
-            'http://test/events?page=2'
-        )
+        current_url = 'http://test/events?page=2'
 
         service = self._make_service(repo_mock=repo_mock)
         filters = EventFilter()
         pagination = Pagination(page=1, page_size=10)
 
-        result = await service.get_paginated(filters, pagination, request_mock)
+        result = await service.get_paginated(filters, pagination, current_url)
 
         assert result.next is not None
 
@@ -211,16 +205,13 @@ class TestEventService:
         repo_mock = MagicMock(spec=EventRepository)
         repo_mock.get_paginated = AsyncMock(return_value=([db_event], 10))
 
-        request_mock = MagicMock()
-        request_mock.url.include_query_params.return_value = str(
-            'http://test/events?page=1'
-        )
+        current_url = 'http://test/events?page=1'
 
         service = self._make_service(repo_mock=repo_mock)
         filters = EventFilter()
         pagination = Pagination(page=2, page_size=10)
 
-        result = await service.get_paginated(filters, pagination, request_mock)
+        result = await service.get_paginated(filters, pagination, current_url)
 
         assert result.previous is not None
 
@@ -363,7 +354,7 @@ class TestSyncService:
     def _make_service(
         self,
         client_mock: BaseProviderClient | None = None,
-        paginator_class_mock: type[BasePaginator] | None = None,
+        paginator_class_mock: BasePaginatorFactory | None = None,
         sync_repo_mock: Any = None,
         events_repo_mock: Any = None,
         place_repo_mock: Any = None,
@@ -371,7 +362,7 @@ class TestSyncService:
         if client_mock is None:
             client_mock = MagicMock(spec=BaseProviderClient)
         if paginator_class_mock is None:
-            paginator_class_mock = MagicMock(spec=type[BasePaginator])
+            paginator_class_mock = MagicMock(spec=BasePaginatorFactory)
         if sync_repo_mock is None:
             sync_repo_mock = MagicMock()
         if events_repo_mock is None:
