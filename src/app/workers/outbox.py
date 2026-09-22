@@ -42,13 +42,13 @@ class OutboxWorker:
         async with self.session_factory() as session:
             repo = self.outbox_repo_cls(session)
             to_proceed = await repo.get_for_processing(self.max_retries)
-            no_handlers = []
+            no_handlers = set()
             handled = 0
             total = len(to_proceed)
             for out in to_proceed:
                 handler_cls = self._REGISTRY.get(out.event_type)
                 if handler_cls is None:
-                    no_handlers.append(out.event_type)
+                    no_handlers.add(out.event_type)
                     continue
                 handler = handler_cls()
                 try:
