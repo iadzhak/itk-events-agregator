@@ -63,7 +63,6 @@ def _make_outbox(**kwargs) -> Outbox:
 
 
 @pytest.mark.unit
-@pytest.mark.asyncio
 class TestOutboxWorker:
 
     def test_register_handler_function(self, mock_worker, mock_handler_cls):
@@ -82,12 +81,14 @@ class TestOutboxWorker:
         assert isinstance(mock_worker._REGISTRY, dict)
         assert mock_worker._REGISTRY[mock_type] == MockHandler
 
+    @pytest.mark.asyncio
     async def test_run(self, mock_worker):
         mock_worker.polling_interval_s = 0.1
         mock_worker.run_once = AsyncMock(side_effect=asyncio.CancelledError)
         await mock_worker.run()
         mock_worker.run_once.assert_awaited_once()
 
+    @pytest.mark.asyncio
     async def test_run_once_handled(self, mock_sessionmaker, mock_handler_cls):
         out = _make_outbox(
             event_type=OutboxType.EVENT_REGISTRATION,
@@ -102,6 +103,7 @@ class TestOutboxWorker:
         mock_handler_cls.return_value.handle.assert_awaited_once()
         assert out.status == OutboxStatus.SENT
 
+    @pytest.mark.asyncio
     async def test_run_once_not_handled(self, mock_sessionmaker,
                                         mock_handler_cls_raise):
         out = _make_outbox(
@@ -117,6 +119,7 @@ class TestOutboxWorker:
         mock_handler_cls_raise.return_value.handle.assert_awaited_once()
         assert out.status == OutboxStatus.FAILED
 
+    @pytest.mark.asyncio
     async def test_run_once_retry_count_increment(self, mock_sessionmaker,
                                                   mock_handler_cls_raise):
         retries = 1
@@ -134,6 +137,7 @@ class TestOutboxWorker:
         assert out.status == OutboxStatus.FAILED
         assert out.retry_count == retries + 1
 
+    @pytest.mark.asyncio
     async def test_run_once_retry_count_not_increment(self, mock_sessionmaker,
                                                       mock_handler_cls):
         retries = 1

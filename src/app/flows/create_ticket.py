@@ -101,7 +101,7 @@ class CreateTicketUseCase:
             'event_type': OutboxType.EVENT_REGISTRATION,
             'payload': {
                 'message': msg,
-                'reference_id': ticket_id,
+                'reference_id': str(ticket_id),
                 'idempotency_key': str(uuid4()),
             },
         }
