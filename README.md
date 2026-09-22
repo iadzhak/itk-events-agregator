@@ -159,12 +159,14 @@ src/app/
 │   └── cancel_ticket.py    # Отмена регистрации
 ├── models/                 # SQLAlchemy модели
 │   ├── event.py            # Модель события
+│   ├── outbox.py           # Outbox для надёжной доставки событий
 │   ├── place.py            # Модель площадки
 │   ├── sync.py             # Метаданные синхронизации
 │   └── ticket.py           # Модель билета
 ├── repository/             # Repository pattern
 │   ├── base.py             # Базовый репозиторий
 │   ├── event.py            # События
+│   ├── outbox.py           # Outbox
 │   ├── place.py            # Площадки
 │   ├── sync.py             # Синхронизация
 │   └── ticket.py           # Билеты
@@ -177,8 +179,12 @@ src/app/
 │   ├── event.py            # Логика работы с событиями
 │   └── sync.py             # Логика синхронизации
 ├── types/                  # Типы и перечисления
+│   ├── event_status.py     # Статусы событий
+│   ├── outbox_status.py    # Статусы outbox
+│   ├── outbox_type.py      # Типы outbox событий
+│   └── sync_status.py      # Статусы синхронизации
 ├── utils/                  # Утилиты
-│   └── paginator.py        # EventsPaginator
+│   └── events_paginator.py # EventsPaginator (cursor-based pagination)
 ├── dependencies.py         # Dependency injection
 ├── lifespan.py             # Управление жизненным циклом
 ├── background_tasks.py     # Фоновые задачи
