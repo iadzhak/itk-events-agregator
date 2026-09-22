@@ -120,7 +120,10 @@ def _make_outbox(**kwargs) -> Outbox:
     return Outbox(
         event_type=kwargs.get('event_type', OutboxType.EVENT_REGISTRATION),
         aggregate_id=kwargs.get('aggregate_id', str(uuid4())),
-        payload=kwargs.get('payload', payload)
+        payload=kwargs.get('payload', payload),
+        status=kwargs.get('status', OutboxStatus.PENDING),
+        retry_count=kwargs.get('retry_count', 0),
+        last_changed_at=kwargs.get('last_changed_at', None)
     )
 
 
@@ -894,3 +897,22 @@ class TestOutboxRepo:
                 items.append(found)
 
         assert len(items) == 3
+
+    async def test_get_for_processing(self, session: AsyncSession):
+        max_retries = 3
+        pending = _make_outbox(status=OutboxStatus.PENDING)
+        failed = _make_outbox(status=OutboxStatus.FAILED)
+        retries_exceeded = _make_outbox(
+            status=OutboxStatus.FAILED,
+            retry_count=max_retries + 1
+        )
+        session.add_all([pending, failed, retries_exceeded])
+        await session.flush()
+
+        repo = OutboxRepository(session)
+
+        found = await repo.get_for_processing(max_retries)
+        assert found is not None
+        assert isinstance(found, list)
+        assert len(found) == 2
+        assert not any(f.id == retries_exceeded.id for f in found)
