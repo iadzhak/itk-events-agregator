@@ -8,6 +8,7 @@ __all__ = [
     'ExternalApiError',
     'InternalError',
     'NotFoundError',
+    'HandlerError',
     'get_logger',
     'get_session',
     'settings',
@@ -19,6 +20,7 @@ from app.core.exceptions import (
     BadRequestError,
     BaseError,
     ExternalApiError,
+    HandlerError,
     InternalError,
     NotFoundError,
 )

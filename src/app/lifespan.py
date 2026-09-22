@@ -5,14 +5,28 @@ from fastapi import FastAPI
 
 from app.background_tasks import periodic_sync_meta
 from app.core import settings
+from app.core.db import AsyncSessionLocal
+from app.repository import OutboxRepository
+from app.workers import OutboxWorker
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    task = asyncio.create_task(periodic_sync_meta(settings.update_interval_h))
+    outbox_worker = OutboxWorker(
+        polling_interval_s=0,
+        max_retries=0,
+        outbox_repo_cls=OutboxRepository,
+        session_factory=AsyncSessionLocal,
+    )
+    tasks = [
+        asyncio.create_task(periodic_sync_meta(settings.update_interval_h)),
+        asyncio.create_task(outbox_worker.run()),
+    ]
     yield
-    task.cancel()
+    for task in tasks:
+        task.cancel()
     try:
-        await task
+        for task in tasks:
+            await task
     except asyncio.CancelledError:
         pass

@@ -5,21 +5,28 @@ from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    # Application
     app_title: str = 'Events Aggregator'
     app_description: str = 'Special aggregator for Events Provider API'
 
     origins: Annotated[list[str], NoDecode] = ['*']
 
+    # Events Provider
     update_interval_h: int = 24
     provider_base_url: str = 'http://events-provider.dev-2.python-labs.ru'
     provider_api_key: str = ''
     provider_retries: int = 3
 
+    # PostgreSQL
     postgres_host: str = 'localhost'
     postgres_username: str = 'postgres'
     postgres_password: str = 'postgres'
     postgres_database_name: str = 'postgres'
     postgres_port: int = 5432
+
+    # Outbox Worker
+    polling_interval_s: int = 15
+    max_retries: int = 3
 
     @property
     def db_url(self) -> str:

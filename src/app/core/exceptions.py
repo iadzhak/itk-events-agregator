@@ -23,3 +23,7 @@ class InternalError(BaseError):
 
 class ExternalApiError(Exception):
     """Ошибка внешнего API клиента"""
+
+
+class HandlerError(Exception):
+    """Не смогли обработать исходящие событие"""
