@@ -28,6 +28,11 @@ class Settings(BaseSettings):
     polling_interval_s: int = 15
     max_retries: int = 3
 
+    # Capashino Notification Service
+    capashino_base_url: str = 'https://capashino.dev-2.python-labs.ru'
+    capashino_api_key: str = ''
+    capashino_retries: int = 3
+
     @property
     def db_url(self) -> str:
         return (

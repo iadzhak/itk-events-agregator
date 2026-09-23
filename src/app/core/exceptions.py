@@ -25,5 +25,9 @@ class ExternalApiError(Exception):
     """Ошибка внешнего API клиента"""
 
 
+class InternalApiError(Exception):
+    """Ошибка внутреннего api, между сервисами"""
+
+
 class HandlerError(Exception):
     """Не смогли обработать исходящие событие"""
