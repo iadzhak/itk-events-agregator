@@ -62,11 +62,25 @@ class OutboxWorker:
                         out.id,
                         str(e),
                     )
+                except Exception as e:
+                    out.status = OutboxStatus.FAILED
+                    out.retry_count += 1
+                    out.error_message = str(e)
+                    logger.exception(
+                        'Неожиданная ошибка при обработке %s события %s: %s',
+                        out.event_type,
+                        out.id,
+                        str(e),
+                    )
             if no_handlers:
                 logger.warning(
                     'Для %s не назначены обработчики', ', '.join(no_handlers)
                 )
+            logger.info(
+                'Коммит транзакции с изменениями %s событий', len(to_proceed)
+            )
             await session.commit()
+            logger.info('Транзакция успешно закоммичена')
 
     async def run(self):
         logger.info('Outbox worker запущен')
