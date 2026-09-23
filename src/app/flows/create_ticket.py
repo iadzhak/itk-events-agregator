@@ -60,7 +60,6 @@ class CreateTicketUseCase:
             'last_name': last_name,
             'email': email,
             'seat': seat,
-            'idempotency_key': idempotency_key,
         }
         payload_hash = make_payload_hash(payload)
 

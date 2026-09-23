@@ -37,6 +37,7 @@ class OutboxWorker:
         async with self.session_factory() as session:
             repo = self.outbox_repo_cls(session)
             to_proceed = await repo.get_for_processing(self.max_retries)
+            logger.info('В очереди на обработку %s событий', len(to_proceed))
             no_handlers = set()
             for out in to_proceed:
                 handler = self._registry.get(out.event_type)
