@@ -10,8 +10,8 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from app.core import Base
-from app.models import Event, Place, SyncMeta, Ticket, Outbox
-from app.repository import OutboxRepository
+from app.models import Event, Place, SyncMeta, Ticket, Outbox, Idempotency
+from app.repository import OutboxRepository, IdempotencyRepository
 from app.repository.event import EventRepository
 from app.repository.place import PlaceRepository
 from app.repository.sync import SyncRepository
@@ -916,3 +916,99 @@ class TestOutboxRepo:
         assert isinstance(found, list)
         assert len(found) == 2
         assert not any(f.id == retries_exceeded.id for f in found)
+
+
+# ---------------------------------------------------------------------------
+# TestIdempotencyRepo — IdempotencyRepository
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integ
+@pytest.mark.asyncio
+class TestIdempotencyRepo:
+    """Tests for IdempotencyRepository: create, get_by_id, update,
+    delete, get_by_key.
+
+    Idempotency uses an integer primary key (unlike UUID for other entities).
+    """
+
+    def _make_idempotency(self, **kwargs):
+        return Idempotency(
+            idempotency_key=kwargs.get('idempotency_key', 'test_key'),
+            payload_hash=kwargs.get('payload_hash', 'test_hash'),
+            response=kwargs.get('response', 'test_response')
+        )
+
+    async def test_create(self, session: AsyncSession):
+        idempotency = self._make_idempotency()
+
+        repo = IdempotencyRepository(session)
+
+        db_obj = await repo.create({
+            'idempotency_key': idempotency.idempotency_key,
+            'payload_hash': idempotency.payload_hash,
+            'response': idempotency.response,
+        })
+        await session.commit()
+
+        assert db_obj is not None
+        assert db_obj.idempotency_key == idempotency.idempotency_key
+        assert db_obj.payload_hash == idempotency.payload_hash
+        assert db_obj.response == idempotency.response
+        assert isinstance(db_obj.created_at, dt.datetime)
+
+    async def test_get_by_id(self, session: AsyncSession):
+        idempotency = self._make_idempotency()
+        session.add(idempotency)
+        await session.flush()
+
+        repo = IdempotencyRepository(session)
+        found = await repo.get_by_id(idempotency.id)
+
+        assert found is not None
+        assert found.id == idempotency.id
+
+    async def test_get_by_id_not_found(self, session: AsyncSession):
+        repo = IdempotencyRepository(session)
+        found = await repo.get_by_id(99999)
+        assert found is None
+
+    async def test_update_is_forbidden(self,
+                                       session: AsyncSession):
+        payload_hash = '1234'
+        idempotency = self._make_idempotency(payload_hash=payload_hash)
+        session.add(idempotency)
+        await session.flush()
+
+        repo = IdempotencyRepository(session)
+        with pytest.raises(TypeError):
+            await repo.update(idempotency, {'payload_hash': 'new_hash'})
+
+        assert idempotency.payload_hash == payload_hash
+
+    async def test_delete(self, session: AsyncSession):
+        idempotency = _make_outbox()
+        session.add(idempotency)
+        await session.flush()
+
+        repo = IdempotencyRepository(session)
+        await repo.delete(idempotency)
+
+        found = await repo.get_by_id(idempotency.id)
+        assert found is None
+
+    async def test_get_by_key(self, session: AsyncSession):
+        idempotency_key = 'test_key'
+        idempotency = self._make_idempotency(idempotency_key=idempotency_key)
+        session.add(idempotency)
+        await session.flush()
+
+        repo = IdempotencyRepository(session)
+        found = await repo.get_by_key(idempotency_key)
+        assert found is not None
+        assert found.idempotency_key == idempotency_key
+        assert found.id == idempotency.id
+
+    async def test_get_by_key_not_found(self, session: AsyncSession):
+        repo = IdempotencyRepository(session)
+        found = await repo.get_by_key('99999')
+        assert found is None
