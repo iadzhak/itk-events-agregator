@@ -18,6 +18,9 @@ class CapashinoClient(BaseNotificationClient):
             transport=AsyncHTTPTransport(retries=retries),
         )
 
+    async def aclose(self) -> None:
+        await self._client.aclose()
+
     async def notify(
         self,
         msg: str,
@@ -27,32 +30,29 @@ class CapashinoClient(BaseNotificationClient):
         body = {'message': msg, 'reference_id': str(reference_id)}
         if idempotency_key is not None:
             body['idempotency_key'] = str(idempotency_key)
-        async with self._client as client:
-            try:
-                response = await client.post(self.NOTIFY_URL, json=body)
-            except HTTPError as e:
-                raise InternalApiError(str(e)) from e
+        try:
+            response = await self._client.post(self.NOTIFY_URL, json=body)
+        except HTTPError as e:
+            raise InternalApiError(str(e)) from e
 
-            match response.status_code:
-                case 201:
-                    return
-                case 400:
-                    raise InternalApiError('Нет reference_id, невалидное тело')
-                case 401:
-                    raise InternalApiError('Нет/неверный X-API-Key')
-                case 409:
-                    raise InternalApiError(
-                        f'Уже есть уведомление с таким '
-                        f'idempotency_key: {idempotency_key}'
-                    )
-                case 422:
-                    raise InternalApiError('Пустое message')
-                case code if code >= 500:
-                    raise InternalApiError(
-                        'Повторная попытка со стороны воркера'
-                    )
-                case code:
-                    raise InternalApiError(
-                        f'Неизвестная ошибка status_code: {code}, '
-                        f'response: {response.json()}'
-                    )
+        match response.status_code:
+            case 201:
+                return
+            case 400:
+                raise InternalApiError('Нет reference_id, невалидное тело')
+            case 401:
+                raise InternalApiError('Нет/неверный X-API-Key')
+            case 409:
+                raise InternalApiError(
+                    f'Уже есть уведомление с таким '
+                    f'idempotency_key: {idempotency_key}'
+                )
+            case 422:
+                raise InternalApiError('Пустое message')
+            case code if code >= 500:
+                raise InternalApiError('Повторная попытка со стороны воркера')
+            case code:
+                raise InternalApiError(
+                    f'Неизвестная ошибка status_code: {code}, '
+                    f'response: {response.json()}'
+                )

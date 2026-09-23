@@ -40,3 +40,4 @@ async def lifespan(app: FastAPI):
             await task
     except asyncio.CancelledError:
         pass
+    await capashino.aclose()
