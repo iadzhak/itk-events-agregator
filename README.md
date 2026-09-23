@@ -82,6 +82,9 @@ uv run uvicorn app.main:app --reload
 | `POSTGRES_PORT`          | Порт PostgreSQL                                    | `5432`                                       |
 | `POLLING_INTERVAL_S`     | Интервал проверки новых событий для обработки      | `15`                                         |
 | `MAX_RETRIES`            | Максимально количество попыток отправки события    | `3`                                          |
+| `CAPASHINO_BASE_URL`     | Базовый URL Capashino сервиса                      | ``                                           |
+| `CAPASHINO_API_KEY`      | API-ключ для Capashino сервиса                     | ``                                           |
+| `CAPASHINO_RETRIES`      | Максимально количество попыток Capashino           | `3`                                          |
 
 ## 🔌 API Endpoints
 
@@ -150,8 +153,10 @@ src/app/
 │   └── routers.py          # Группировка роутеров
 ├── clients/                # HTTP-клиенты
 │   ├── base.py             # Базовый интерфейс
-│   └── events_provider.py  # Events Provider API client
+│   ├── events_provider.py  # Events Provider API client
+│   └── capashino.py        # Capashino API client
 ├── core/                   # Ядро приложения
+│   ├── base.py             # Метаданные для alembic
 │   ├── conf.py             # Конфигурация
 │   ├── db.py               # Подключение к БД
 │   ├── exceptions.py       # Обработка ошибок
@@ -187,6 +192,10 @@ src/app/
 │   └── sync_status.py      # Статусы синхронизации
 ├── utils/                  # Утилиты
 │   └── events_paginator.py # EventsPaginator (cursor-based pagination)
+├── workers/                # Фоновые воркеры
+│   ├── outbox.py           # Outbox worker
+│   └── handlers/           # Обработчики событий
+│       └── event_registration.py  # Обработка регистрации на событие
 ├── dependencies.py         # Dependency injection
 ├── lifespan.py             # Управление жизненным циклом
 ├── background_tasks.py     # Фоновые задачи
@@ -243,8 +252,6 @@ pytest --cache-clear
 | `unit`  | Юнит-тесты отдельных функций и методов                                                      |
 | `integ` | Интеграционные тесты — используют testcontainers для запуска PostgreSQL в Docker-контейнере |
 
-> **Примечание:** Маркеры в процессе расширения. Полный список: `pytest --markers`
-
 ### Тестирование с PostgreSQL
 
 Интеграционные тесты используют [testcontainers](https://testcontainers-python.readthedocs.io/) для запуска PostgreSQL в
@@ -267,13 +274,13 @@ ruff format
 
 ## 🚦 CI/CD
 
-GitHub Actions автоматически запускает линтинг перед деплоем:
+GitHub Actions автоматически запускает линтинг и тесты перед деплоем:
 
 ```yaml
 # .github/workflows/deploy.yml
 jobs:
   lint:    # Ruff check
-  test:    # Pytest unit tests
+  tests:    # Pytest unit tests
   build:   # Docker build (multi-platform)
   deploy:  # Deploy request
 ```
