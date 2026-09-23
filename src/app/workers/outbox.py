@@ -15,8 +15,6 @@ class OutboxHandler(Protocol):
 
 
 class OutboxWorker:
-    _REGISTRY: dict[OutboxType, type[OutboxHandler]] = {}
-
     def __init__(
         self,
         polling_interval_s: int,
@@ -28,15 +26,12 @@ class OutboxWorker:
         self.polling_interval_s = polling_interval_s
         self.outbox_repo_cls = outbox_repo_cls
         self.max_retries = max_retries
+        self._registry: dict[OutboxType, OutboxHandler] = {}
 
-    @classmethod
-    def register_handler(cls, outbox_type: OutboxType):
-
-        def wrapper(handler_cls: type[OutboxHandler]):
-            cls._REGISTRY[outbox_type] = handler_cls
-            return handler_cls
-
-        return wrapper
+    def register_handler(
+        self, outbox_type: OutboxType, handler: OutboxHandler
+    ) -> None:
+        self._registry[outbox_type] = handler
 
     async def run_once(self):
         async with self.session_factory() as session:
@@ -46,11 +41,10 @@ class OutboxWorker:
             handled = 0
             total = len(to_proceed)
             for out in to_proceed:
-                handler_cls = self._REGISTRY.get(out.event_type)
-                if handler_cls is None:
+                handler = self._registry.get(out.event_type)
+                if handler is None:
                     no_handlers.add(out.event_type)
                     continue
-                handler = handler_cls()
                 try:
                     await handler.handle(out.payload)
                     out.status = OutboxStatus.SENT

@@ -13,19 +13,17 @@ from app.core import HandlerError
 
 
 @pytest.fixture
-def mock_handler_cls():
-    handler_instance = MagicMock()
-    handler_instance.handle = AsyncMock(return_value=None)
-    handler_cls = MagicMock(return_value=handler_instance)
-    return handler_cls
+def mock_handler():
+    handler = MagicMock(spec=OutboxHandler)
+    handler.handle = AsyncMock(return_value=None)
+    return handler
 
 
 @pytest.fixture
-def mock_handler_cls_raise():
-    handler_instance = MagicMock()
-    handler_instance.handle = AsyncMock(side_effect=HandlerError)
-    handler_cls = MagicMock(return_value=handler_instance)
-    return handler_cls
+def mock_handler_raise():
+    handler = MagicMock(spec=OutboxHandler)
+    handler.handle = AsyncMock(side_effect=HandlerError)
+    return handler
 
 
 @pytest.fixture
@@ -65,21 +63,10 @@ def _make_outbox(**kwargs) -> Outbox:
 @pytest.mark.unit
 class TestOutboxWorker:
 
-    def test_register_handler_function(self, mock_worker, mock_handler_cls):
+    def test_register_handler_function(self, mock_worker, mock_handler):
         mock_type = OutboxType.EVENT_REGISTRATION
-        mock_worker.register_handler(mock_type)(mock_handler_cls)
-        assert mock_worker._REGISTRY[mock_type] == mock_handler_cls
-
-    def test_register_handler_decorator(self, mock_worker):
-        mock_type = OutboxType.EVENT_REGISTRATION
-
-        @OutboxWorker.register_handler(mock_type)
-        class MockHandler:
-            async def handle(self, payload):
-                return
-
-        assert isinstance(mock_worker._REGISTRY, dict)
-        assert mock_worker._REGISTRY[mock_type] == MockHandler
+        mock_worker.register_handler(mock_type, mock_handler)
+        assert mock_worker._registry[mock_type] == mock_handler
 
     @pytest.mark.asyncio
     async def test_run(self, mock_worker):
@@ -89,68 +76,64 @@ class TestOutboxWorker:
         mock_worker.run_once.assert_awaited_once()
 
     @pytest.mark.asyncio
-    async def test_run_once_handled(self, mock_sessionmaker, mock_handler_cls):
+    async def test_run_once_handled(self, mock_sessionmaker, mock_handler):
         out = _make_outbox(
             event_type=OutboxType.EVENT_REGISTRATION,
             status=OutboxStatus.PENDING,
             retry_count=0
         )
-        OutboxWorker._REGISTRY[
-            OutboxType.EVENT_REGISTRATION] = mock_handler_cls
 
         worker = OutboxWorker(0, 0, _make_repo_cls(out), mock_sessionmaker)
+        worker._registry[OutboxType.EVENT_REGISTRATION] = mock_handler
         await worker.run_once()
-        mock_handler_cls.return_value.handle.assert_awaited_once()
+        mock_handler.handle.assert_awaited_once()
         assert out.status == OutboxStatus.SENT
 
     @pytest.mark.asyncio
     async def test_run_once_not_handled(self, mock_sessionmaker,
-                                        mock_handler_cls_raise):
+                                        mock_handler_raise):
         out = _make_outbox(
             event_type=OutboxType.EVENT_REGISTRATION,
             status=OutboxStatus.FAILED,
             retry_count=0
         )
-        OutboxWorker._REGISTRY[
-            OutboxType.EVENT_REGISTRATION] = mock_handler_cls_raise
 
         worker = OutboxWorker(0, 0, _make_repo_cls(out), mock_sessionmaker)
+        worker._registry[OutboxType.EVENT_REGISTRATION] = mock_handler_raise
         await worker.run_once()
-        mock_handler_cls_raise.return_value.handle.assert_awaited_once()
+        mock_handler_raise.handle.assert_awaited_once()
         assert out.status == OutboxStatus.FAILED
 
     @pytest.mark.asyncio
     async def test_run_once_retry_count_increment(self, mock_sessionmaker,
-                                                  mock_handler_cls_raise):
+                                                  mock_handler_raise):
         retries = 1
         out = _make_outbox(
             event_type=OutboxType.EVENT_REGISTRATION,
             status=OutboxStatus.FAILED,
             retry_count=retries
         )
-        OutboxWorker._REGISTRY[
-            OutboxType.EVENT_REGISTRATION] = mock_handler_cls_raise
 
         worker = OutboxWorker(0, 0, _make_repo_cls(out), mock_sessionmaker)
+        worker._registry[OutboxType.EVENT_REGISTRATION] = mock_handler_raise
         await worker.run_once()
-        mock_handler_cls_raise.return_value.handle.assert_awaited_once()
+        mock_handler_raise.handle.assert_awaited_once()
         assert out.status == OutboxStatus.FAILED
         assert out.retry_count == retries + 1
 
     @pytest.mark.asyncio
     async def test_run_once_retry_count_not_increment(self, mock_sessionmaker,
-                                                      mock_handler_cls):
+                                                      mock_handler):
         retries = 1
         out = _make_outbox(
             event_type=OutboxType.EVENT_REGISTRATION,
             status=OutboxStatus.PENDING,
             retry_count=retries
         )
-        OutboxWorker._REGISTRY[
-            OutboxType.EVENT_REGISTRATION] = mock_handler_cls
 
         worker = OutboxWorker(0, 0, _make_repo_cls(out), mock_sessionmaker)
+        worker._registry[OutboxType.EVENT_REGISTRATION] = mock_handler
         await worker.run_once()
-        mock_handler_cls.return_value.handle.assert_awaited_once()
+        mock_handler.handle.assert_awaited_once()
         assert out.status == OutboxStatus.SENT
         assert out.retry_count == retries
