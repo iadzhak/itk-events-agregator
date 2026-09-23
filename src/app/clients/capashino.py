@@ -24,11 +24,9 @@ class CapashinoClient(BaseNotificationClient):
         reference_id: str | UUID,
         idempotency_key: str | UUID | None = None,
     ) -> None:
-        body = {
-            'message': msg,
-            'reference_id': str(reference_id),
-            'idempotency_key': str(idempotency_key),
-        }
+        body = {'message': msg, 'reference_id': str(reference_id)}
+        if idempotency_key is not None:
+            body['idempotency_key'] = str(idempotency_key)
         async with self._client as client:
             try:
                 response = await client.post(self.NOTIFY_URL, json=body)
