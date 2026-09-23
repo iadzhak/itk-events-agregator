@@ -6,8 +6,9 @@ from uuid import UUID, uuid4
 import pytest
 from httpx import HTTPError
 
+from app.clients import CapashinoClient
 from app.clients.events_provider import EventsProviderClient
-from app.core import ExternalApiError
+from app.core import ExternalApiError, InternalApiError
 from app.schemas import EventsExternal
 
 
@@ -308,3 +309,42 @@ class TestEventsProviderClient:
                 event_id=uuid4(),
                 ticket_id=uuid4()
             )
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+class TestCapashinoClient:
+
+    def _make_client(self, status_code: int = 201, response=''):
+        client = CapashinoClient(
+            base_url='http://test',
+            api_key='secret',
+            retries=3
+        )
+        mock_response = MagicMock()
+        mock_response.status_code = status_code
+        mock_response.json.return_value = response
+        client._client.post = AsyncMock(return_value=mock_response)
+        return client
+
+    async def test_notify_success(self):
+        c = self._make_client()
+        msg, reference_id, idempotency_key = '123', '123', '123'
+        await c.notify(msg, reference_id, idempotency_key)
+        body = {
+            'message': msg,
+            'reference_id': reference_id,
+            'idempotency_key': idempotency_key
+        }
+        c._client.post.assert_awaited_once_with(
+            c.NOTIFY_URL, json=body
+        )
+
+    @pytest.mark.parametrize(
+        'status_code',
+        (400, 401, 409, 422, 500)
+    )
+    async def test_notify_error_status_code(self, status_code):
+        c = self._make_client(status_code=status_code)
+        with pytest.raises(InternalApiError):
+            await c.notify('123', '123', '123')
