@@ -6,6 +6,7 @@ __all__ = [
     'BaseError',
     'CommonMixin',
     'ExternalApiError',
+    'InternalApiError',
     'InternalError',
     'NotFoundError',
     'HandlerError',
@@ -21,6 +22,7 @@ from app.core.exceptions import (
     BaseError,
     ExternalApiError,
     HandlerError,
+    InternalApiError,
     InternalError,
     NotFoundError,
 )

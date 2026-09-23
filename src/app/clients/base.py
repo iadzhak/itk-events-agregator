@@ -8,11 +8,9 @@ from app.schemas import EventsExternal
 class BaseProviderClient(Protocol):
     async def events(
         self, changed_at: dt.datetime, cursor: str | None = None
-    ) -> EventsExternal:
-        pass
+    ) -> EventsExternal: ...
 
-    async def seats(self, event_id: UUID) -> list[str]:
-        pass
+    async def seats(self, event_id: UUID) -> list[str]: ...
 
     async def register(
         self,
@@ -21,8 +19,15 @@ class BaseProviderClient(Protocol):
         last_name: str,
         seat: str,
         email: str,
-    ) -> UUID:
-        pass
+    ) -> UUID: ...
 
-    async def cancel(self, event_id: UUID, ticket_id: UUID) -> bool:
-        pass
+    async def cancel(self, event_id: UUID, ticket_id: UUID) -> bool: ...
+
+
+class BaseNotificationClient(Protocol):
+    async def notify(
+        self,
+        msg: str,
+        reference_id: str | UUID,
+        idempotency_key: str | UUID | None = None,
+    ) -> None: ...
