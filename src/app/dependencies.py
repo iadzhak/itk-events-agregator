@@ -9,6 +9,7 @@ from app.core import get_session, settings
 from app.flows import CancelTicketUseCase, CreateTicketUseCase
 from app.repository import (
     EventRepository,
+    IdempotencyRepository,
     OutboxRepository,
     PlaceRepository,
     SyncRepository,
@@ -51,11 +52,18 @@ def get_outbox_repository(session: SessionDep) -> OutboxRepository:
     return OutboxRepository(session)
 
 
+def get_idempotency_repository(session: SessionDep) -> IdempotencyRepository:
+    return IdempotencyRepository(session)
+
+
 EventsRepoDep = Annotated[EventRepository, Depends(get_event_repository)]
 PlaceRepoDep = Annotated[PlaceRepository, Depends(get_place_repository)]
 SyncRepoDep = Annotated[SyncRepository, Depends(get_sync_repository)]
 TicketRepoDep = Annotated[TicketRepository, Depends(get_ticket_repository)]
 OutboxRepoDep = Annotated[OutboxRepository, Depends(get_outbox_repository)]
+IdempotencyRepoDep = Annotated[
+    IdempotencyRepository, Depends(get_idempotency_repository)
+]
 
 EventsProviderClientDep = Annotated[
     EventsProviderClient, Depends(get_events_provider_client)
@@ -100,8 +108,9 @@ def get_create_ticket_use_case(
     events: EventsRepoDep,
     tickets: TicketRepoDep,
     outbox: OutboxRepoDep,
+    idempotency: IdempotencyRepoDep,
 ) -> CreateTicketUseCase:
-    return CreateTicketUseCase(client, events, tickets, outbox)
+    return CreateTicketUseCase(client, events, tickets, outbox, idempotency)
 
 
 CreateTicketUseCaseDep = Annotated[

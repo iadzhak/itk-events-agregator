@@ -1,12 +1,24 @@
 import datetime as dt
 import re
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from app.clients import BaseProviderClient
-from app.core import BadRequestError, InternalError, NotFoundError, get_logger
-from app.repository import EventRepository, OutboxRepository, TicketRepository
+from app.core import (
+    BadRequestError,
+    IdempotencyError,
+    InternalError,
+    NotFoundError,
+    get_logger,
+)
+from app.repository import (
+    EventRepository,
+    IdempotencyRepository,
+    OutboxRepository,
+    TicketRepository,
+)
 from app.schemas import Ticket
 from app.types import EventStatus, OutboxType
+from app.utils import make_payload_hash
 
 RANGE_PATTERN = re.compile(r'([A-Z])(\d+)-(\d+)')
 PLACE_PATTERN = re.compile(r'([A-Z])(\d+)')
@@ -23,11 +35,13 @@ class CreateTicketUseCase:
         events: EventRepository,
         tickets: TicketRepository,
         outbox: OutboxRepository,
+        idempotency: IdempotencyRepository,
     ) -> None:
         self._client = client
         self._events = events
         self._tickets = tickets
         self._outbox = outbox
+        self._idempotency = idempotency
 
     async def do(
         self,
@@ -36,8 +50,28 @@ class CreateTicketUseCase:
         last_name: str,
         email: str,
         seat: str,
+        idempotency_key: str | None = None,
     ) -> Ticket:
         event = await self._events.get_by_id(event_id)
+
+        payload = {
+            'event_id': event_id,
+            'first_name': first_name,
+            'last_name': last_name,
+            'email': email,
+            'seat': seat,
+            'idempotency_key': idempotency_key,
+        }
+        payload_hash = make_payload_hash(payload)
+
+        # check idempotency
+        if idempotency_key is not None:
+            idempotency = await self._idempotency.get_by_key(idempotency_key)
+            if idempotency is not None:
+                if idempotency.payload_hash == payload_hash:
+                    return Ticket(**idempotency.response)
+                else:
+                    raise IdempotencyError('Конфликт данных')
 
         # check event exist
         if event is None:
@@ -96,14 +130,25 @@ class CreateTicketUseCase:
         msg = NOTIFICATION_MSG.format(
             name=event.name, time=event.event_time.strftime('%d.%m.%Y %H:%M')
         )
+        data_out_payload = {
+            'message': msg,
+            'reference_id': str(ticket_id),
+        }
+
+        if idempotency_key is not None:
+            await self._idempotency.create(
+                {
+                    'idempotency_key': idempotency_key,
+                    'payload_hash': payload_hash,
+                    'response': {'ticket_id': ticket_id},
+                }
+            )
+            data_out_payload['idempotency_key'] = str(idempotency_key)
+
         data_out = {
             'aggregate_id': str(ticket_id),
             'event_type': OutboxType.EVENT_REGISTRATION,
-            'payload': {
-                'message': msg,
-                'reference_id': str(ticket_id),
-                'idempotency_key': str(uuid4()),
-            },
+            'payload': data_out_payload,
         }
         await self._outbox.create(data_out)
 
