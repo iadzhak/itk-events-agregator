@@ -140,7 +140,7 @@ class CreateTicketUseCase:
                 {
                     'idempotency_key': idempotency_key,
                     'payload_hash': payload_hash,
-                    'response': {'ticket_id': ticket_id},
+                    'response': {'ticket_id': str(ticket_id)},
                 }
             )
             data_out_payload['idempotency_key'] = str(idempotency_key)
