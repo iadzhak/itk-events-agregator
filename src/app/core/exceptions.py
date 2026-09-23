@@ -21,6 +21,10 @@ class InternalError(BaseError):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
+class IdempotencyError(BaseError):
+    status_code = status.HTTP_409_CONFLICT
+
+
 class ExternalApiError(Exception):
     """Ошибка внешнего API клиента"""
 

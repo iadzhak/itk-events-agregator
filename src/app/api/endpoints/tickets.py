@@ -13,6 +13,11 @@ async def register_for_event(
     form: UserBuyTicket,
     service: CreateTicketUseCaseDep,
 ):
+    """Для избежания дубликата билета при повторной отправке клиентом
+    одного и того же запроса (двойной клик, retry) возможна передача
+    клиентом ключа **idempotency_key** который представляет собой
+    обычную строку и передается в теле запроса.
+    """
     return await service.do(**form.model_dump())
 
 

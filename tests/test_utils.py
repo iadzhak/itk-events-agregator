@@ -1,10 +1,12 @@
 import datetime as dt
 from unittest.mock import AsyncMock, MagicMock
+from uuid import uuid4
 
 import pytest
 
 from app.clients.events_provider import EventsProviderClient
 from app.schemas import EventDB, EventsExternal
+from app.utils import make_payload_hash
 from app.utils.events_paginator import EventsPaginator
 
 
@@ -60,3 +62,40 @@ class TestEventsPaginator:
         iterator = EventsPaginator(client, changed_at=self.CHANGE_AT)
         result = [e async for e in iterator]
         assert result == []
+
+
+@pytest.mark.unit
+class TestMakePayloadHash:
+    def test_returns_str(self):
+        data = {'a': 'b', 'b': 'c'}
+        h = make_payload_hash(data)
+        assert isinstance(h, str)
+
+    @pytest.mark.parametrize(
+        'data',
+        (
+                {'a': 12},
+                {'a': 2.25},
+                {'a': 'text'},
+                {'a': uuid4()},
+                {'a': dt.datetime.now()},
+        ),
+        ids=['int', 'float', 'str', 'uuid', 'datetime']
+    )
+    def test_can_accept_type(self, data):
+        h = make_payload_hash(data)
+        assert isinstance(h, str)
+
+    def test_differentiable(self):
+        data = {'a': 'b', 'b': 'c'}
+        h = make_payload_hash(data)
+        for _ in range(3):
+            test = make_payload_hash(data)
+            assert h == test
+
+    def test_different_order_same_hash(self):
+        data_1 = {'a': 'b', 'b': 'c'}
+        data_2 = {'b': 'c', 'a': 'b'}
+        h1 = make_payload_hash(data_1)
+        h2 = make_payload_hash(data_2)
+        assert h1 == h2

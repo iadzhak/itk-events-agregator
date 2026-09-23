@@ -8,7 +8,8 @@ import pytest
 from app.clients import BaseProviderClient, EventsProviderClient
 from app.core import BadRequestError, ExternalApiError, NotFoundError
 from app.flows import CancelTicketUseCase, CreateTicketUseCase
-from app.repository import EventRepository, TicketRepository, OutboxRepository
+from app.repository import EventRepository, TicketRepository, OutboxRepository, \
+    IdempotencyRepository
 from app.schemas import CancelTicket, Ticket
 from app.types import EventStatus
 
@@ -47,6 +48,13 @@ def mock_outbox_repo():
     repo = MagicMock(spec=OutboxRepository)
     repo.get_by_id = AsyncMock(return_value=None)
     repo.create = AsyncMock()
+    return repo
+
+
+@pytest.fixture
+def mock_idempotency_repo():
+    repo = MagicMock(spec=IdempotencyRepository)
+    repo.get_by_key = AsyncMock(return_value=None)
     return repo
 
 
@@ -106,13 +114,21 @@ def _make_ticket(event, **kwargs):
 class TestCreateTicketUseCase:
     """Tests for CreateTicketUseCase covering happy path and all error paths."""
 
-    async def test_happy_path(self, mock_client, mock_event_repo,
-                              mock_ticket_repo, mock_outbox_repo):
+    async def test_happy_path_no_idempotency_key(
+        self,
+        mock_client,
+        mock_event_repo,
+        mock_ticket_repo,
+        mock_outbox_repo,
+        mock_idempotency_repo
+    ):
         event = _make_event()
         mock_event_repo.get_by_id.return_value = event
 
-        case = CreateTicketUseCase(mock_client, mock_event_repo,
-                                   mock_ticket_repo, mock_outbox_repo)
+        case = CreateTicketUseCase(
+            mock_client, mock_event_repo, mock_ticket_repo, mock_outbox_repo,
+            mock_idempotency_repo
+        )
         result = await case.do(
             event_id=event.id,
             first_name='John',
@@ -127,6 +143,7 @@ class TestCreateTicketUseCase:
             event.id, 'John', 'Doe', 'A1', 'john@example.com',
         )
         mock_ticket_repo.create.assert_called_once()
+        mock_idempotency_repo.get_by_key.assert_not_awaited()
         call_args = mock_ticket_repo.create.call_args[0][0]
         assert call_args['id'] == mock_client.register.return_value
         assert call_args['seat'] == 'A1'
@@ -135,11 +152,14 @@ class TestCreateTicketUseCase:
     # -- event not found ---------------------------------------------------
 
     async def test_event_not_found(self, mock_client, mock_event_repo,
-                                   mock_ticket_repo, mock_outbox_repo):
+                                   mock_ticket_repo, mock_outbox_repo,
+                                   mock_idempotency_repo):
         mock_event_repo.get_by_id.return_value = None
 
-        case = CreateTicketUseCase(mock_client, mock_event_repo,
-                                   mock_ticket_repo, mock_outbox_repo)
+        case = CreateTicketUseCase(
+            mock_client, mock_event_repo, mock_ticket_repo, mock_outbox_repo,
+            mock_idempotency_repo
+        )
 
         with pytest.raises(NotFoundError, match='не найдено'):
             await case.do(uuid4(), 'F', 'L', 'e@e.com', 'A1')
@@ -151,12 +171,14 @@ class TestCreateTicketUseCase:
     # -- event not published -----------------------------------------------
 
     async def test_event_not_published(self, mock_client, mock_event_repo,
-                                       mock_ticket_repo, mock_outbox_repo):
+                                       mock_ticket_repo, mock_outbox_repo,
+                                       mock_idempotency_repo):
         event = _make_event(status='draft')
         mock_event_repo.get_by_id.return_value = event
 
         case = CreateTicketUseCase(mock_client, mock_event_repo,
-                                   mock_ticket_repo, mock_outbox_repo)
+                                   mock_ticket_repo, mock_outbox_repo,
+                                   mock_idempotency_repo)
 
         with pytest.raises(BadRequestError,
                            match='только на мероприятия со статусом "published"'):
@@ -170,14 +192,16 @@ class TestCreateTicketUseCase:
     async def test_registration_deadline_passed(self, mock_client,
                                                 mock_event_repo,
                                                 mock_ticket_repo,
-                                                mock_outbox_repo
+                                                mock_outbox_repo,
+                                                mock_idempotency_repo
                                                 ):
         now = dt.datetime.now(tz=dt.UTC)
         event = _make_event(registration_deadline=now - dt.timedelta(days=1))
         mock_event_repo.get_by_id.return_value = event
 
         case = CreateTicketUseCase(mock_client, mock_event_repo,
-                                   mock_ticket_repo, mock_outbox_repo)
+                                   mock_ticket_repo, mock_outbox_repo,
+                                   mock_idempotency_repo)
 
         with pytest.raises(BadRequestError, match='уже завершилась'):
             await case.do(event.id, 'F', 'L', 'e@e.com', 'A1')
@@ -188,12 +212,14 @@ class TestCreateTicketUseCase:
     # -- seat not in pattern -----------------------------------------------
 
     async def test_seat_not_in_pattern(self, mock_client, mock_event_repo,
-                                       mock_ticket_repo, mock_outbox_repo):
+                                       mock_ticket_repo, mock_outbox_repo,
+                                       mock_idempotency_repo):
         event = _make_event()
         mock_event_repo.get_by_id.return_value = event
 
         case = CreateTicketUseCase(mock_client, mock_event_repo,
-                                   mock_ticket_repo, mock_outbox_repo)
+                                   mock_ticket_repo, mock_outbox_repo,
+                                   mock_idempotency_repo)
 
         with pytest.raises(BadRequestError,
                            match='Секции Z нет среди доступных'):
@@ -206,12 +232,14 @@ class TestCreateTicketUseCase:
 
     async def test_seat_number_out_of_range(self, mock_client, mock_event_repo,
                                             mock_ticket_repo,
-                                            mock_outbox_repo):
+                                            mock_outbox_repo,
+                                            mock_idempotency_repo):
         event = _make_event()
         mock_event_repo.get_by_id.return_value = event
 
         case = CreateTicketUseCase(mock_client, mock_event_repo,
-                                   mock_ticket_repo, mock_outbox_repo)
+                                   mock_ticket_repo, mock_outbox_repo,
+                                   mock_idempotency_repo)
 
         with pytest.raises(BadRequestError, match='нет среди возможных'):
             await case.do(event.id, 'F', 'L', 'e@e.com', 'A999')
@@ -222,14 +250,16 @@ class TestCreateTicketUseCase:
     # -- seat already taken in internal db ---------------------------------
 
     async def test_seat_taken_in_db(self, mock_client, mock_event_repo,
-                                    mock_ticket_repo, mock_outbox_repo):
+                                    mock_ticket_repo, mock_outbox_repo,
+                                    mock_idempotency_repo):
         event = _make_event()
         existing_ticket = _make_ticket(event, seat='A1')
         event.tickets = [existing_ticket]
         mock_event_repo.get_by_id.return_value = event
 
         case = CreateTicketUseCase(mock_client, mock_event_repo,
-                                   mock_ticket_repo, mock_outbox_repo)
+                                   mock_ticket_repo, mock_outbox_repo,
+                                   mock_idempotency_repo)
 
         with pytest.raises(BadRequestError, match='уже занято'):
             await case.do(event.id, 'F', 'L', 'e@e.com', 'A1')
@@ -242,13 +272,15 @@ class TestCreateTicketUseCase:
     async def test_seat_not_available_external(self, mock_client,
                                                mock_event_repo,
                                                mock_ticket_repo,
-                                               mock_outbox_repo):
+                                               mock_outbox_repo,
+                                               mock_idempotency_repo):
         event = _make_event()
         mock_event_repo.get_by_id.return_value = event
         mock_client.seats.return_value = ['A2', 'A3']  # A1 not available
 
         case = CreateTicketUseCase(mock_client, mock_event_repo,
-                                   mock_ticket_repo, mock_outbox_repo)
+                                   mock_ticket_repo, mock_outbox_repo,
+                                   mock_idempotency_repo)
 
         with pytest.raises(BadRequestError,
                            match='уже занято. Доступные места'):
@@ -262,13 +294,15 @@ class TestCreateTicketUseCase:
     async def test_provider_returns_no_ticket_id(self, mock_client,
                                                  mock_event_repo,
                                                  mock_ticket_repo,
-                                                 mock_outbox_repo):
+                                                 mock_outbox_repo,
+                                                 mock_idempotency_repo):
         event = _make_event()
         mock_event_repo.get_by_id.return_value = event
         mock_client.register.return_value = None
 
         case = CreateTicketUseCase(mock_client, mock_event_repo,
-                                   mock_ticket_repo, mock_outbox_repo)
+                                   mock_ticket_repo, mock_outbox_repo,
+                                   mock_idempotency_repo)
 
         with pytest.raises(BadRequestError,
                            match='Не удалось получить ticket_id'):
