@@ -38,8 +38,6 @@ class OutboxWorker:
             repo = self.outbox_repo_cls(session)
             to_proceed = await repo.get_for_processing(self.max_retries)
             no_handlers = set()
-            handled = 0
-            total = len(to_proceed)
             for out in to_proceed:
                 handler = self._registry.get(out.event_type)
                 if handler is None:
@@ -48,7 +46,11 @@ class OutboxWorker:
                 try:
                     await handler.handle(out.payload)
                     out.status = OutboxStatus.SENT
-                    handled += 1
+                    logger.info(
+                        'Успешно обработано %s сообщение %s',
+                        out.event_type,
+                        out.id,
+                    )
                 except HandlerError as e:
                     out.status = OutboxStatus.FAILED
                     out.retry_count += 1
@@ -63,18 +65,14 @@ class OutboxWorker:
                 logger.warning(
                     'Для %s не назначены обработчики', ', '.join(no_handlers)
                 )
-            if handled > 0:
-                logger.info(
-                    'Успешно обработано %s исходящих событий из %s',
-                    handled,
-                    total,
-                )
             await session.commit()
 
     async def run(self):
+        logger.info('Outbox worker запущен')
         while True:
             try:
                 await self.run_once()
                 await asyncio.sleep(self.polling_interval_s)
             except asyncio.CancelledError:
                 break
+        logger.info('Outbox worker завершил работу')
