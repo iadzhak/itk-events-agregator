@@ -138,7 +138,6 @@ class CreateTicketUseCase:
         event: Event | None = await self._events.get_by_id(event_id)
         if event is None:
             raise NotFoundError(f'Мероприятие с id: {event_id!s} не найдено')
-        return event
 
         # check event status is published
         if event.status != EventStatus.PUBLISHED:
@@ -154,6 +153,8 @@ class CreateTicketUseCase:
             raise BadRequestError(
                 f'Регистрация на мероприятие {event.name} уже завершилась'
             )
+
+        return event
 
     async def check_seat(
         self, seat: str, event: Event, event_id: UUID
