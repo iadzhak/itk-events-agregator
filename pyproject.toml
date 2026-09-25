@@ -17,6 +17,7 @@ dependencies = [
     "alembic>=1.19.2",
     "asyncpg>=0.31.0",
     "cachetools>=7.1.8",
+    "sentry-sdk>=2.70.0",
 ]
 
 

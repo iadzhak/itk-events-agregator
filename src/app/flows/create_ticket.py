@@ -10,6 +10,7 @@ from app.core import (
     NotFoundError,
     get_logger,
 )
+from app.models import Event
 from app.repository import (
     EventRepository,
     IdempotencyRepository,
@@ -52,7 +53,6 @@ class CreateTicketUseCase:
         seat: str,
         idempotency_key: str | None = None,
     ) -> Ticket:
-        event = await self._events.get_by_id(event_id)
 
         payload = {
             'event_id': event_id,
@@ -64,48 +64,15 @@ class CreateTicketUseCase:
         payload_hash = make_payload_hash(payload)
 
         # check idempotency
-        if idempotency_key is not None:
-            idempotency = await self._idempotency.get_by_key(idempotency_key)
-            if idempotency is not None:
-                if idempotency.payload_hash == payload_hash:
-                    return Ticket(**idempotency.response)
-                else:
-                    raise IdempotencyError('Конфликт данных')
+        check = await self.check_idempotency(idempotency_key, payload_hash)
+        if check is not None:
+            return check
 
-        # check event exist
-        if event is None:
-            raise NotFoundError(f'Мероприятие с id: {event_id!s} не найдено')
+        # check event
+        event = await self.check_event(event_id)
 
-        # check event status is published
-        if event.status != EventStatus.PUBLISHED:
-            raise BadRequestError(
-                f'Регистрация возможно только на мероприятия со статусом '
-                f'"published". Мероприятия "{event.name}" статус '
-                f'"{event.status}"'
-            )
-
-        # check event registration deadline
-        now = dt.datetime.now(tz=dt.UTC)
-        if now >= event.registration_deadline:
-            raise BadRequestError(
-                f'Регистрация на мероприятие {event.name} уже завершилась'
-            )
-
-        # check seat exist (seat_pattern)
-        self.is_seat_exist(seat, event.place.seats_pattern)
-
-        # check seat is free (internal db)
-        seats_in_db = [t.seat for t in event.tickets]
-        if seat in seats_in_db:
-            raise BadRequestError(f'Место {seat} уже занято.')
-
-        # check seat is free (external api)
-        seats = await self._client.seats(event_id)
-        if seat not in seats:
-            seats_str = ','.join(seats)
-            raise BadRequestError(
-                f'Место {seat} уже занято. Доступные места: {seats_str}'
-            )
+        # check seats
+        await self.check_seat(seat, event, event_id)
 
         # make request
         ticket_id = await self._client.register(
@@ -153,6 +120,61 @@ class CreateTicketUseCase:
 
         # return response
         return Ticket(ticket_id=ticket_id)
+
+    async def check_idempotency(
+        self, idempotency_key: str | None, payload_hash: str
+    ) -> Ticket | None:
+        if idempotency_key is not None:
+            idempotency = await self._idempotency.get_by_key(idempotency_key)
+            if idempotency is not None:
+                if idempotency.payload_hash == payload_hash:
+                    return Ticket(**idempotency.response)
+                else:
+                    raise IdempotencyError('Конфликт данных')
+        return None
+
+    async def check_event(self, event_id: UUID) -> Event:
+        # check event exist
+        event: Event | None = await self._events.get_by_id(event_id)
+        if event is None:
+            raise NotFoundError(f'Мероприятие с id: {event_id!s} не найдено')
+
+        # check event status is published
+        if event.status != EventStatus.PUBLISHED:
+            raise BadRequestError(
+                f'Регистрация возможно только на мероприятия со статусом '
+                f'"published". Мероприятия "{event.name}" статус '
+                f'"{event.status}"'
+            )
+
+        # check event registration deadline
+        now = dt.datetime.now(tz=dt.UTC)
+        if now >= event.registration_deadline:
+            raise BadRequestError(
+                f'Регистрация на мероприятие {event.name} уже завершилась'
+            )
+
+        return event
+
+    async def check_seat(
+        self, seat: str, event: Event, event_id: UUID
+    ) -> None:
+
+        # check seat exist (seat_pattern)
+        self.is_seat_exist(seat, event.place.seats_pattern)
+
+        # check seat is free (internal db)
+        seats_in_db = [t.seat for t in event.tickets]
+        if seat in seats_in_db:
+            raise BadRequestError(f'Место {seat} уже занято.')
+
+        # check seat is free (external api)
+        seats = await self._client.seats(event_id)
+        if seat not in seats:
+            seats_str = ','.join(seats)
+            raise BadRequestError(
+                f'Место {seat} уже занято. Доступные места: {seats_str}'
+            )
 
     def is_seat_exist(self, seat: str, seats_pattern: str):
         parts = seats_pattern.split(',')

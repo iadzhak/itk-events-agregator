@@ -1,11 +1,32 @@
+import sentry_sdk
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from sentry_sdk.integrations.starlette import StarletteIntegration
 
 from app.api import main_router
 from app.core import BaseError, ExternalApiError, settings
 from app.lifespan import lifespan
+
+if settings.sentry_dsn:
+    sentry_sdk.init(
+        dsn=settings.sentry_dsn,
+        send_default_pii=True,
+        integrations=[
+            StarletteIntegration(
+                transaction_style='endpoint',
+                failed_request_status_codes=set(settings.sentry_status_codes),
+                http_methods_to_capture=tuple(settings.sentry_methods),
+            ),
+            FastApiIntegration(
+                transaction_style='endpoint',
+                failed_request_status_codes=set(settings.sentry_status_codes),
+                http_methods_to_capture=tuple(settings.sentry_methods),
+            ),
+        ],
+    )
 
 app = FastAPI(
     title=settings.app_title,

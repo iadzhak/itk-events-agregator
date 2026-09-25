@@ -75,6 +75,7 @@ uv run uvicorn app.main:app --reload
 | `UPDATE_INTERVAL_H`      | Интервал фоновой синхронизации в часах             | `24`                                         |
 | `PROVIDER_BASE_URL`      | Базовый URL Events Provider API                    | ``                                           |
 | `PROVIDER_API_KEY`       | API-ключ для Events Provider API                   | ``                                           |
+| `PROVIDER_RETRIES`       | Количество попыток при запросах к Events Provider  | `3`                                          |
 | `POSTGRES_HOST`          | Хост PostgreSQL                                    | `localhost`                                  |
 | `POSTGRES_USERNAME`      | Имя пользователя PostgreSQL                        | `postgres`                                   |
 | `POSTGRES_PASSWORD`      | Пароль PostgreSQL                                  | `postgres`                                   |
@@ -85,6 +86,9 @@ uv run uvicorn app.main:app --reload
 | `CAPASHINO_BASE_URL`     | Базовый URL Capashino сервиса                      | ``                                           |
 | `CAPASHINO_API_KEY`      | API-ключ для Capashino сервиса                     | ``                                           |
 | `CAPASHINO_RETRIES`      | Максимально количество попыток Capashino           | `3`                                          |
+| `SENTRY_DSN`             | DSN для Sentry (опционально)                       | ``                                           |
+| `SENTRY_STATUS_CODES`    | Коды ответов для отправки в Sentry (через запятую) | `500, 501,  ... , 599`                       |
+| `SENTRY_METHODS`         | HTTP-методы для отслеживания в Sentry              | `GET,POST`                                   |
 
 ## 🔌 API Endpoints
 
