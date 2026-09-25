@@ -43,7 +43,8 @@ async def periodic_sync_meta(period_h: int):
             else:
                 delta = next_sync_time - now
             logger.info(
-                f'Следующая синхронизация запанирована на {next_sync_time!s}'
+                'Следующая синхронизация запанирована на %s',
+                str(next_sync_time),
             )
             await asyncio.sleep(delta.total_seconds())
         except asyncio.CancelledError:
