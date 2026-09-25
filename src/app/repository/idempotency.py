@@ -1,4 +1,5 @@
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
 from app.models import Idempotency
 from app.repository.base import BaseRepository
@@ -16,3 +17,13 @@ class IdempotencyRepository(BaseRepository):
         )
         result = await self.session.execute(stmt)
         return result.scalars().first()
+
+    async def create(self, data) -> Idempotency:
+        new_obj = self.model(**data)
+        self.session.add(new_obj)
+        try:
+            await self.session.flush()
+        except IntegrityError:
+            await self.session.rollback()
+            raise
+        return new_obj

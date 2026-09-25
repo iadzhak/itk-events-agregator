@@ -1,6 +1,7 @@
 import datetime as dt
-import re
 from uuid import UUID
+
+from sqlalchemy.exc import IntegrityError
 
 from app.clients import BaseProviderClient
 from app.core import (
@@ -19,10 +20,7 @@ from app.repository import (
 )
 from app.schemas import Ticket
 from app.types import EventStatus, OutboxType
-from app.utils import make_payload_hash
-
-RANGE_PATTERN = re.compile(r'([A-Z])(\d+)-(\d+)')
-PLACE_PATTERN = re.compile(r'([A-Z])(\d+)')
+from app.utils import is_seat_exist, make_payload_hash
 
 logger = get_logger(__name__)
 
@@ -102,13 +100,24 @@ class CreateTicketUseCase:
         }
 
         if idempotency_key is not None:
-            await self._idempotency.create(
-                {
-                    'idempotency_key': idempotency_key,
-                    'payload_hash': payload_hash,
-                    'response': {'ticket_id': str(ticket_id)},
-                }
-            )
+            try:
+                await self._idempotency.create(
+                    {
+                        'idempotency_key': idempotency_key,
+                        'payload_hash': payload_hash,
+                        'response': {'ticket_id': str(ticket_id)},
+                    }
+                )
+            except IntegrityError as e:
+                check = await self.check_idempotency(
+                    idempotency_key, payload_hash
+                )
+                if check is None:
+                    raise InternalError(
+                        f'Ошибка добавления по '
+                        f'idempotency_key: {idempotency_key}'
+                    ) from e
+                return check
             data_out_payload['idempotency_key'] = str(idempotency_key)
 
         data_out = {
@@ -161,7 +170,7 @@ class CreateTicketUseCase:
     ) -> None:
 
         # check seat exist (seat_pattern)
-        self.is_seat_exist(seat, event.place.seats_pattern)
+        is_seat_exist(seat, event.place.seats_pattern)
 
         # check seat is free (internal db)
         seats_in_db = [t.seat for t in event.tickets]
@@ -174,28 +183,4 @@ class CreateTicketUseCase:
             seats_str = ','.join(seats)
             raise BadRequestError(
                 f'Место {seat} уже занято. Доступные места: {seats_str}'
-            )
-
-    def is_seat_exist(self, seat: str, seats_pattern: str):
-        parts = seats_pattern.split(',')
-        available = {}
-        for part in parts:
-            m = RANGE_PATTERN.match(part)
-            if m is None:
-                logger.error('Некорректный seats_pattern: %s', seats_pattern)
-                raise InternalError('Ошибка чтения мест на мероприятии')
-            section, min_place, max_place = m.groups()
-            available[section] = int(min_place), int(max_place)
-        m_seats = PLACE_PATTERN.match(seat)
-        if m_seats is None:
-            raise BadRequestError(f'Неверный формат диапазона мест: {seat!r}')
-        s, p = m_seats.groups()
-        p = int(p)
-        if s not in available:
-            all_s = ','.join(available.keys())
-            raise BadRequestError(f'Секции {s} нет среди доступных: {all_s}')
-        if p < available[s][0] or p > available[s][1]:
-            raise BadRequestError(
-                f'Места {p} нет среди возможных '
-                f'{available[s][0]}-{available[s][1]} для секции {s}'
             )
