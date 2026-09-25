@@ -33,6 +33,11 @@ class Settings(BaseSettings):
     capashino_api_key: str = ''
     capashino_retries: int = 3
 
+    # Sentry
+    sentry_dsn: str = ''
+    sentry_status_codes: list[int] = [*range(500, 600)]
+    sentry_methods: list[str] = ['GET', 'POST']
+
     @property
     def db_url(self) -> str:
         return (
@@ -40,7 +45,9 @@ class Settings(BaseSettings):
             f'@{self.postgres_host}:{self.postgres_port}/{self.postgres_database_name}'
         )
 
-    @field_validator('origins', mode='before')
+    @field_validator(
+        'origins', 'sentry_status_codes', 'sentry_methods', mode='before'
+    )
     @classmethod
     def decode_origins(cls, v: str) -> list[str]:
         if isinstance(v, list):
