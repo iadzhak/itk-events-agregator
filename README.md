@@ -13,6 +13,7 @@ FastAPI-приложение для агрегации событий от Event
 - [Структура проекта](#-структура-проекта)
 - [Локальная разработка](#-локальная-разработка)
 - [Тесты](#-тесты)
+- [Метрики](#-метрики)
 - [CI/CD](#-cicd)
 - [Деплой](#-деплой)
 
@@ -260,6 +261,43 @@ pytest --cache-clear
 
 Интеграционные тесты используют [testcontainers](https://testcontainers-python.readthedocs.io/) для запуска PostgreSQL в
 Docker-контейнере. Убедитесь, что Docker запущен.
+
+## 📊 Метрики
+
+Проект собирает метрики через [Prometheus Client](https://github.com/prometheus/client_python) и экспортирует их в
+формате
+Prometheus. Метрики доступны на endpoint-е `/metrics`.
+
+### HTTP-метрики
+
+| Метрика                         | Тип       | Метки                          | Описание                       |
+|---------------------------------|-----------|--------------------------------|--------------------------------|
+| `http_requests_total`           | Counter   | `method`, `endpoint`, `status` | Общее количество HTTP-запросов |
+| `http_request_duration_seconds` | Histogram | `method`, `endpoint`           | Время обработки запросов       |
+
+**Buckets для `http_request_duration_seconds`:** `[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0]`
+
+### Метрики Events Provider
+
+| Метрика                                    | Тип       | Метки                | Описание                              |
+|--------------------------------------------|-----------|----------------------|---------------------------------------|
+| `events_provider_requests_total`           | Counter   | `endpoint`, `status` | Количество запросов к Events Provider |
+| `events_provider_request_duration_seconds` | Histogram | `endpoint`           | Время ответа Events Provider          |
+
+### Бизнес-метрики
+
+| Метрика                   | Тип   | Описание                                 |
+|---------------------------|-------|------------------------------------------|
+| `tickets_created_total`   | Gauge | Общее количество созданных билетов в БД  |
+| `tickets_cancelled_total` | Gauge | Общее количество отменённых билетов в БД |
+| `events_total`            | Gauge | Текущее количество событий в базе        |
+
+### Метрики кэширования
+
+| Метрика              | Тип     | Описание                |
+|----------------------|---------|-------------------------|
+| `cache_hits_total`   | Counter | Попадания в кэш (seats) |
+| `cache_misses_total` | Counter | Промахи кэша (seats)    |
 
 ## 🔄 Линтинг
 
