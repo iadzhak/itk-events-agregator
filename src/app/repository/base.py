@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -50,3 +50,8 @@ class BaseRepository[T: BaseInt | BaseUUID]:
         await self.session.delete(db_obj)
         await self.session.flush()
         return db_obj
+
+    async def count(self) -> int:
+        stmt = select(func.count(self.model.id))
+        result = await self.session.execute(stmt)
+        return int(result.scalars().first() or 0)
