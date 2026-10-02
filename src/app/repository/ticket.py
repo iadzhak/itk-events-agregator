@@ -25,8 +25,10 @@ class TicketRepository(BaseRepository):
             ) from e
         return ticket
 
-    async def count_by_status(self, status: TicketStatus) -> int:
-        stmt = select(func.count(Ticket.id)).where(Ticket.status == status)
+    async def count_cancelled(self) -> int:
+        stmt = select(func.count(Ticket.id)).where(
+            Ticket.status == TicketStatus.CANCELLED
+        )
         result = await self.session.execute(stmt)
         return int(result.scalars().first() or 0)
 
