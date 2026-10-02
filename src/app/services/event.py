@@ -7,6 +7,7 @@ from pydantic import HttpUrl
 
 from app.clients import BaseProviderClient
 from app.core import BadRequestError, NotFoundError
+from app.metrics import cache_hits_total, cache_misses_total
 from app.repository import EventRepository
 from app.schemas import (
     EventDetail,
@@ -95,6 +96,9 @@ class EventService:
     ) -> EventSeatsResponse:
         if event_id not in self._cache:
             await self.get_available_seats(event_id)
+            cache_misses_total.inc()
+        else:
+            cache_hits_total.inc()
         seats = self._cache[event_id]
         return EventSeatsResponse(
             event_id=event_id, available_seats=list(seats)
