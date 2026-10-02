@@ -9,6 +9,7 @@ from sentry_sdk.integrations.starlette import StarletteIntegration
 from app.api import main_router
 from app.core import BaseError, ExternalApiError, settings
 from app.lifespan import lifespan
+from app.middleware import MetricsMiddleware
 
 if settings.sentry_dsn:
     sentry_sdk.init(
@@ -40,6 +41,7 @@ app.add_middleware(
     allow_methods=['*'],
     allow_headers=['*'],
 )
+app.add_middleware(MetricsMiddleware)
 app.include_router(main_router)
 
 
