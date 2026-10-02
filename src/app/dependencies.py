@@ -20,13 +20,12 @@ from app.utils import EventsPaginator, get_events_paginator_class
 
 
 async def get_events_provider_client():
-    client = EventsProviderClient(
+    async with EventsProviderClient(
         base_url=settings.provider_base_url,
         api_key=settings.provider_api_key,
         retries=settings.provider_retries,
-    )
-    yield client
-    await client.aclose()
+    ) as client:
+        yield client
 
 
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
