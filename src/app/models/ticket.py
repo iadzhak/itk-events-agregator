@@ -10,6 +10,7 @@ from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core import BaseUUID
+from app.types import TicketStatus
 
 
 class Ticket(BaseUUID):
@@ -19,6 +20,9 @@ class Ticket(BaseUUID):
     first_name: Mapped[str] = mapped_column(String)
     last_name: Mapped[str] = mapped_column(String)
     email: Mapped[str] = mapped_column(String)
+    status: Mapped[TicketStatus] = mapped_column(
+        String, nullable=False, default=TicketStatus.BOUGHT
+    )
 
     event: Mapped['Event'] = relationship(
         back_populates='tickets', lazy='selectin'

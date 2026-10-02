@@ -3,6 +3,7 @@ from uuid import UUID
 
 from app.clients import EventsProviderClient
 from app.core import BadRequestError, ExternalApiError, NotFoundError
+from app.models import Ticket
 from app.repository import TicketRepository
 from app.schemas import CancelTicket
 
@@ -16,7 +17,7 @@ class CancelTicketUseCase:
 
     async def do(self, ticket_id: UUID) -> CancelTicket:
         # check registration exist
-        ticket = await self._tickets.get_by_id(ticket_id)
+        ticket: Ticket | None = await self._tickets.get_by_id(ticket_id)
         if ticket is None:
             raise NotFoundError(f'Билет "{ticket_id}" не найден')
 
