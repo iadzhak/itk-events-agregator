@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.starlette import StarletteIntegration
 
-from app.api import main_router
+from app.api import main_router, metrics_router
 from app.core import BaseError, ExternalApiError, settings
 from app.lifespan import lifespan
 from app.middleware import MetricsMiddleware
@@ -43,6 +43,7 @@ app.add_middleware(
 )
 app.add_middleware(MetricsMiddleware)
 app.include_router(main_router)
+app.include_router(metrics_router)
 
 
 @app.exception_handler(ExternalApiError)
