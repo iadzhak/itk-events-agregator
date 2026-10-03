@@ -1,3 +1,5 @@
+import time
+
 from starlette.middleware.base import (
     BaseHTTPMiddleware,
     RequestResponseEndpoint,
@@ -13,16 +15,19 @@ class MetricsMiddleware(BaseHTTPMiddleware):
         self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
 
+        start = time.monotonic()
+        response = await call_next(request)
+        duration = time.monotonic() - start
+
         route = request.scope.get('route')
         if route is not None and hasattr(route, 'path'):
             endpoint = route.path
         else:
             endpoint = request.url.path
 
-        with http_request_duration_seconds.labels(
+        http_request_duration_seconds.labels(
             method=request.method, endpoint=endpoint
-        ).time():
-            response = await call_next(request)
+        ).observe(duration)
 
         http_requests_total.labels(
             method=request.method,
