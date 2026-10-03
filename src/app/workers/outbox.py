@@ -76,11 +76,14 @@ class OutboxWorker:
                 logger.warning(
                     'Для %s не назначены обработчики', ', '.join(no_handlers)
                 )
-            logger.info(
-                'Коммит транзакции с изменениями %s событий', len(to_proceed)
-            )
+            if len(to_proceed) > 0:
+                logger.info(
+                    'Коммит транзакции с изменениями %s событий',
+                    len(to_proceed),
+                )
             await session.commit()
-            logger.info('Транзакция успешно закоммичена')
+            if len(to_proceed) > 0:
+                logger.info('Транзакция успешно закоммичена')
 
     async def run(self):
         logger.info('Outbox worker запущен')
