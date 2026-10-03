@@ -17,7 +17,7 @@ from app.repository.place import PlaceRepository
 from app.repository.sync import SyncRepository
 from app.repository.ticket import TicketRepository
 from app.schemas import EventFilter
-from app.types import OutboxType, OutboxStatus
+from app.types import OutboxType, OutboxStatus, TicketStatus
 
 
 @pytest_asyncio.fixture(scope='session')
@@ -790,7 +790,8 @@ class TestTicketRepo:
         await repo.delete(ticket)
 
         found = await repo.get_by_id(ticket.id)
-        assert found is None
+        assert found is not None
+        assert found.status == TicketStatus.CANCELLED
 
     async def test_ticket_long_email(self, session: AsyncSession):
         place = _make_place()
