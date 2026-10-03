@@ -60,7 +60,7 @@ class EventsProviderClient(BaseProviderClient):
                 response = await request
             events_provider_requests_total.labels(
                 endpoint=endpoint, status=response.status_code
-            )
+            ).inc()
             response.raise_for_status()
             return response
         except HTTPError as e:
