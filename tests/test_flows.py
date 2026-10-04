@@ -8,6 +8,7 @@ import pytest
 from app.clients import BaseProviderClient, EventsProviderClient
 from app.core import BadRequestError, ExternalApiError, NotFoundError
 from app.flows import CancelTicketUseCase, CreateTicketUseCase
+from app.models import Outbox
 from app.repository import EventRepository, TicketRepository, OutboxRepository, \
     IdempotencyRepository
 from app.schemas import CancelTicket, Ticket
@@ -46,8 +47,9 @@ def mock_ticket_repo():
 @pytest.fixture
 def mock_outbox_repo():
     repo = MagicMock(spec=OutboxRepository)
-    repo.get_by_id = AsyncMock(return_value=None)
-    repo.create = AsyncMock()
+    outbox = Outbox(id=1, aggregate_id=uuid4(), payload={})
+    repo.get_by_id = AsyncMock(return_value=outbox)
+    repo.create = AsyncMock(return_value=outbox)
     return repo
 
 

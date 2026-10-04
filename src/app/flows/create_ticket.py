@@ -119,15 +119,19 @@ class CreateTicketUseCase:
                     ) from e
                 return check
             data_out_payload['idempotency_key'] = str(idempotency_key)
-        else:
-            data_out_payload['idempotency_key'] = str(ticket_id)
 
         data_out = {
             'aggregate_id': str(ticket_id),
             'event_type': OutboxType.EVENT_REGISTRATION,
             'payload': data_out_payload,
         }
-        await self._outbox.create(data_out)
+        outbox = await self._outbox.create(data_out)
+        if idempotency_key not in outbox.payload:
+            updated_data = {'payload': outbox.payload.copy()}
+            updated_data['payload'].update(
+                {'idempotency_key': f'{outbox.id}:{outbox.aggregate_id}'}
+            )
+            await self._outbox.update(outbox, updated_data)
 
         # return response
         return Ticket(ticket_id=ticket_id)
