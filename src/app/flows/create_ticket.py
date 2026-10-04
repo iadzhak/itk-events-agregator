@@ -119,6 +119,8 @@ class CreateTicketUseCase:
                     ) from e
                 return check
             data_out_payload['idempotency_key'] = str(idempotency_key)
+        else:
+            data_out_payload['idempotency_key'] = str(ticket_id)
 
         data_out = {
             'aggregate_id': str(ticket_id),
