@@ -36,17 +36,12 @@ class CapashinoClient(BaseNotificationClient):
             raise InternalApiError(str(e)) from e
 
         match response.status_code:
-            case 201:
+            case 201 | 409:
                 return
             case 400:
                 raise InternalApiError('Нет reference_id, невалидное тело')
             case 401:
                 raise InternalApiError('Нет/неверный X-API-Key')
-            case 409:
-                raise InternalApiError(
-                    f'Уже есть уведомление с таким '
-                    f'idempotency_key: {idempotency_key}'
-                )
             case 422:
                 raise InternalApiError('Пустое message')
             case code if code >= 500:

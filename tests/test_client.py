@@ -327,8 +327,11 @@ class TestCapashinoClient:
         client._client.post = AsyncMock(return_value=mock_response)
         return client
 
-    async def test_notify_success(self):
-        c = self._make_client()
+    @pytest.mark.parametrize(
+        'status_code', (201, 409)
+    )
+    async def test_notify_success(self, status_code):
+        c = self._make_client(status_code=status_code)
         msg, reference_id, idempotency_key = '123', '123', '123'
         await c.notify(msg, reference_id, idempotency_key)
         body = {
@@ -342,7 +345,7 @@ class TestCapashinoClient:
 
     @pytest.mark.parametrize(
         'status_code',
-        (400, 401, 409, 422, 500)
+        (400, 401, 422, 500)
     )
     async def test_notify_error_status_code(self, status_code):
         c = self._make_client(status_code=status_code)
